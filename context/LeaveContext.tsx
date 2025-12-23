@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { LeaveRequest, User, LeaveStatus, LeaveType, RolePermissions, AppFeature, Department } from '../types.ts';
 import { MOCK_REQUESTS, MOCK_USERS, ANNUAL_LEAVE_LIMIT, PUBLIC_HOLIDAY_COUNT } from '../constants.ts';
 import { useLanguage } from './LanguageContext.tsx';
-import { fetchUsersAndRequests, insertUser as supabaseInsertUser, updateUser as supabaseUpdateUser, deleteUser as supabaseDeleteUser, insertLeaveRequest as supabaseInsertLeaveRequest } from '../services/supabaseLeaveService';
+import { fetchUsersAndRequests, insertUser as supabaseInsertUser, updateUser as supabaseUpdateUser, deleteUser as supabaseDeleteUser, insertLeaveRequest as supabaseInsertLeaveRequest, updateLeaveStatus as supabaseUpdateLeaveStatus } from '../services/supabaseLeaveService';
 
 interface LeaveContextType {
   currentUser: User | null;
@@ -356,6 +356,9 @@ export const LeaveProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     }
 
     setRequests(prev => prev.map(req => req.id === id ? { ...req, status } : req));
+
+    // sync สถานะไป Supabase ด้วย (เพื่อให้รีเฟรชแล้วสถานะไม่ย้อนกลับ)
+    supabaseUpdateLeaveStatus(id, status).catch(() => {});
     
     if (status === LeaveStatus.REJECTED) {
         const req = requests.find(r => r.id === id);

@@ -1,5 +1,5 @@
 import { supabase } from './supabaseClient';
-import { LeaveRequest, User } from '../types';
+import { LeaveRequest, User, LeaveStatus } from '../types';
 
 // Helper types aligned with Supabase schema (snake_case)
 type DbUser = {
@@ -173,4 +173,16 @@ export async function deleteUser(userId: string): Promise<{ success: boolean; er
   return { success: true };
 }
 
+// อัปเดตสถานะคำขอลาใน Supabase ให้ตรงกับที่อนุมัติ/ไม่อนุมัติในหน้า Approvals
+export async function updateLeaveStatus(id: string, status: LeaveStatus): Promise<void> {
+  if (!supabase) return;
 
+  const { error } = await supabase
+    .from('leave_requests')
+    .update({ status })
+    .eq('id', id);
+
+  if (error) {
+    console.warn('[Supabase] Failed to update leave status', error);
+  }
+}
