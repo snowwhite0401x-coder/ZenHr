@@ -260,8 +260,9 @@ export const MyLeaves: React.FC = () => {
                     <div className="flex items-center gap-1">
                       {t('my.table.dates')}
                       <span
-                        className={`text-slate-400 text-[10px] transform transition-transform ${sortDirection === 'asc' ? 'rotate-180' : ''
-                          }`}
+                        className={`text-slate-400 text-[10px] transform transition-transform ${
+                          sortDirection === 'asc' ? 'rotate-180' : ''
+                        }`}
                       >
                         ▼
                       </span>
@@ -297,14 +298,15 @@ export const MyLeaves: React.FC = () => {
                       <td className="py-3.5 px-4 md:px-6">
                         <div className="flex items-center gap-3">
                           <div
-                            className={`w-2 h-2 rounded-full ${req.type === LeaveType.ANNUAL
+                            className={`w-2 h-2 rounded-full ${
+                              req.type === LeaveType.ANNUAL
                                 ? 'bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.6)]'
                                 : req.type === LeaveType.PUBLIC_HOLIDAY
-                                  ? 'bg-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.6)]'
-                                  : req.type === LeaveType.SICK
-                                    ? 'bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.6)]'
-                                    : 'bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.6)]'
-                              }`}
+                                ? 'bg-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.6)]'
+                                : req.type === LeaveType.SICK
+                                ? 'bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.6)]'
+                                : 'bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.6)]'
+                            }`}
                           />
                           <span className="font-medium">
                             {t(`type.${req.type}`)}
@@ -331,20 +333,22 @@ export const MyLeaves: React.FC = () => {
                       </td>
                       <td className="py-3.5 px-4 md:px-6 text-right">
                         <span
-                          className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium ${req.status === 'Approved'
+                          className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium ${
+                            req.status === 'Approved'
                               ? 'bg-green-100 text-green-700'
                               : req.status === 'Pending'
-                                ? 'bg-yellow-100 text-yellow-700'
-                                : 'bg-red-100 text-red-700'
-                            }`}
+                              ? 'bg-yellow-100 text-yellow-700'
+                              : 'bg-red-100 text-red-700'
+                          }`}
                         >
                           <span
-                            className={`w-1.5 h-1.5 rounded-full ${req.status === 'Approved'
+                            className={`w-1.5 h-1.5 rounded-full ${
+                              req.status === 'Approved'
                                 ? 'bg-green-500'
                                 : req.status === 'Pending'
-                                  ? 'bg-yellow-500'
-                                  : 'bg-red-500'
-                              } ${req.status === 'Approved' ? 'animate-pulse' : ''}`}
+                                ? 'bg-yellow-500'
+                                : 'bg-red-500'
+                            } ${req.status === 'Approved' ? 'animate-pulse' : ''}`}
                           />
                           {t(`status.${req.status}`)}
                         </span>
