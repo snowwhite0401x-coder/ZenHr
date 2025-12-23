@@ -81,14 +81,9 @@ export const MyLeaves: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
           {/* Annual leave */}
           <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 hover:shadow-md transition-shadow relative overflow-hidden group">
-            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-              <span className="material-icons-round text-9xl text-orange-400 -mr-4 -mt-4 transform rotate-12">
-                wb_sunny
-              </span>
-            </div>
             <div className="flex items-center gap-4 mb-4 relative z-10">
               <div className="p-3 bg-orange-100 rounded-2xl text-orange-500">
-                <span className="material-icons-round text-2xl">wb_sunny</span>
+                <span className="text-2xl">☀️</span>
               </div>
               <h3 className="text-xl font-medium text-slate-800">{t('my.card.annual')}</h3>
             </div>
@@ -122,14 +117,9 @@ export const MyLeaves: React.FC = () => {
 
           {/* Public holiday */}
           <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 hover:shadow-md transition-shadow relative overflow-hidden group">
-            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-              <span className="material-icons-round text-9xl text-purple-400 -mr-4 -mt-4 transform -rotate-12">
-                celebration
-              </span>
-            </div>
             <div className="flex items-center gap-4 mb-4 relative z-10">
               <div className="p-3 bg-purple-100 rounded-2xl text-purple-500">
-                <span className="material-icons-round text-2xl">celebration</span>
+                <span className="text-2xl">🎉</span>
               </div>
               <h3 className="text-xl font-medium text-slate-800">{t('my.card.public')}</h3>
             </div>
@@ -163,14 +153,9 @@ export const MyLeaves: React.FC = () => {
 
           {/* Personal leave */}
           <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 hover:shadow-md transition-shadow relative overflow-hidden group">
-            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-              <span className="material-icons-round text-9xl text-blue-400 -mr-4 -mt-4">
-                work_history
-              </span>
-            </div>
             <div className="flex items-center gap-4 mb-4 relative z-10">
               <div className="p-3 bg-blue-100 rounded-2xl text-blue-500">
-                <span className="material-icons-round text-2xl">work_history</span>
+                <span className="text-2xl">💼</span>
               </div>
               <h3 className="text-xl font-medium text-slate-800">{t('my.card.personal')}</h3>
             </div>
@@ -201,14 +186,9 @@ export const MyLeaves: React.FC = () => {
 
           {/* Sick leave */}
           <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 hover:shadow-md transition-shadow relative overflow-hidden group">
-            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-              <span className="material-icons-round text-9xl text-rose-400 -mr-4 -mt-4">
-                medical_services
-              </span>
-            </div>
             <div className="flex items-center gap-4 mb-4 relative z-10">
               <div className="p-3 bg-rose-100 rounded-2xl text-rose-500">
-                <span className="material-icons-round text-2xl">medical_services</span>
+                <span className="text-2xl">➕</span>
               </div>
               <h3 className="text-xl font-medium text-slate-800">{t('my.card.sick')}</h3>
             </div>
@@ -298,12 +278,12 @@ export const MyLeaves: React.FC = () => {
                         <div className="flex items-center gap-3">
                           <div
                             className={`w-2 h-2 rounded-full ${req.type === LeaveType.ANNUAL
-                                ? 'bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.6)]'
-                                : req.type === LeaveType.PUBLIC_HOLIDAY
-                                  ? 'bg-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.6)]'
-                                  : req.type === LeaveType.SICK
-                                    ? 'bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.6)]'
-                                    : 'bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.6)]'
+                              ? 'bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.6)]'
+                              : req.type === LeaveType.PUBLIC_HOLIDAY
+                                ? 'bg-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.6)]'
+                                : req.type === LeaveType.SICK
+                                  ? 'bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.6)]'
+                                  : 'bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.6)]'
                               }`}
                           />
                           <span className="font-medium">
@@ -332,18 +312,18 @@ export const MyLeaves: React.FC = () => {
                       <td className="py-3.5 px-4 md:px-6 text-right">
                         <span
                           className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium ${req.status === 'Approved'
-                              ? 'bg-green-100 text-green-700'
-                              : req.status === 'Pending'
-                                ? 'bg-yellow-100 text-yellow-700'
-                                : 'bg-red-100 text-red-700'
+                            ? 'bg-green-100 text-green-700'
+                            : req.status === 'Pending'
+                              ? 'bg-yellow-100 text-yellow-700'
+                              : 'bg-red-100 text-red-700'
                             }`}
                         >
                           <span
                             className={`w-1.5 h-1.5 rounded-full ${req.status === 'Approved'
-                                ? 'bg-green-500'
-                                : req.status === 'Pending'
-                                  ? 'bg-yellow-500'
-                                  : 'bg-red-500'
+                              ? 'bg-green-500'
+                              : req.status === 'Pending'
+                                ? 'bg-yellow-500'
+                                : 'bg-red-500'
                               } ${req.status === 'Approved' ? 'animate-pulse' : ''}`}
                           />
                           {t(`status.${req.status}`)}
