@@ -1,0 +1,192 @@
+import React, { useState } from 'react';
+import { LeaveType, LeaveStatus } from '../types.ts';
+import { useLeaveContext } from '../context/LeaveContext.tsx';
+import { useLanguage } from '../context/LanguageContext.tsx';
+import { ANNUAL_LEAVE_LIMIT, PUBLIC_HOLIDAY_COUNT } from '../constants.ts';
+
+interface Props {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+export const NewLeaveModal: React.FC<Props> = ({ isOpen, onClose }) => {
+  const { addRequest, currentUser, requests } = useLeaveContext();
+  const { t } = useLanguage();
+  const [formData, setFormData] = useState({
+    type: LeaveType.ANNUAL,
+    startDate: '',
+    endDate: '',
+    reason: ''
+  });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  if (!isOpen) return null;
+
+  const calculateDays = (start: string, end: string) => {
+    if (!start || !end) return 0;
+    const s = new Date(start);
+    const e = new Date(end);
+    const diffTime = Math.abs(e.getTime() - s.getTime());
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1; 
+  };
+
+  const daysCount = calculateDays(formData.startDate, formData.endDate);
+  
+  // Calculate remaining balance dynamically based on selected Start Date's Year
+  const selectedYear = formData.startDate ? new Date(formData.startDate).getFullYear() : new Date().getFullYear();
+  
+  const getUsedInYear = (type: LeaveType) => {
+      return requests
+          .filter(r => 
+              r.userId === currentUser.id &&
+              r.status !== LeaveStatus.REJECTED &&
+              r.type === type &&
+              new Date(r.startDate).getFullYear() === selectedYear
+          )
+          .reduce((sum, r) => sum + r.daysCount, 0);
+  };
+
+  const usedAnnual = getUsedInYear(LeaveType.ANNUAL);
+  const usedPublic = getUsedInYear(LeaveType.PUBLIC_HOLIDAY);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    if (!formData.startDate || !formData.endDate) {
+      setError(t('modal.err.dates'));
+      return;
+    }
+    if (new Date(formData.endDate) < new Date(formData.startDate)) {
+      setError(t('modal.err.endBeforeStart'));
+      return;
+    }
+
+    setLoading(true);
+    // Simulate network delay
+    setTimeout(async () => {
+      const result = await addRequest({
+        type: formData.type,
+        startDate: formData.startDate,
+        endDate: formData.endDate,
+        daysCount: daysCount,
+        reason: formData.reason
+      });
+
+      setLoading(false);
+      if (result.success) {
+        setFormData({ type: LeaveType.ANNUAL, startDate: '', endDate: '', reason: '' });
+        onClose();
+      } else {
+        setError(result.message);
+      }
+    }, 600);
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-60 backdrop-blur-sm">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden">
+        <div className="bg-blue-600 px-6 py-4 flex justify-between items-center">
+          <h2 className="text-white font-semibold text-lg">{t('modal.title')}</h2>
+          <button onClick={onClose} className="text-white hover:text-blue-200 text-2xl">&times;</button>
+        </div>
+        
+        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          {error && (
+            <div className="bg-red-50 text-red-600 text-sm p-3 rounded-lg border border-red-200">
+              {error}
+            </div>
+          )}
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t('modal.type')}</label>
+            <select
+              value={formData.type}
+              onChange={(e) => setFormData({...formData, type: e.target.value as LeaveType})}
+              className="w-full border-gray-300 rounded-lg shadow-sm border p-2 focus:ring-blue-500 focus:border-blue-500"
+            >
+              {Object.values(LeaveType).map(v => (
+                <option key={v} value={v}>{t(`type.${v}`)}</option>
+              ))}
+            </select>
+            {formData.type === LeaveType.ANNUAL && (
+              <p className="text-xs text-orange-500 mt-1">
+                {selectedYear} {t('modal.balance')}: {Math.max(0, ANNUAL_LEAVE_LIMIT - usedAnnual)} / {ANNUAL_LEAVE_LIMIT} {t('modal.remaining')}
+              </p>
+            )}
+            {formData.type === LeaveType.PUBLIC_HOLIDAY && (
+              <p className="text-xs text-orange-500 mt-1">
+                {selectedYear} {t('modal.balance')}: {Math.max(0, PUBLIC_HOLIDAY_COUNT - usedPublic)} / {PUBLIC_HOLIDAY_COUNT} {t('modal.remaining')}
+              </p>
+            )}
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t('modal.startDate')}</label>
+              <input
+                type="date"
+                required
+                value={formData.startDate}
+                onChange={(e) => setFormData({...formData, startDate: e.target.value})}
+                className="w-full border-gray-300 rounded-lg shadow-sm border p-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t('modal.endDate')}</label>
+              <input
+                type="date"
+                required
+                value={formData.endDate}
+                onChange={(e) => setFormData({...formData, endDate: e.target.value})}
+                className="w-full border-gray-300 rounded-lg shadow-sm border p-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
+          </div>
+
+          {daysCount > 0 && (
+             <div className="text-right text-sm text-gray-600 font-medium">
+               {t('modal.duration')}: {daysCount} {daysCount > 1 ? t('modal.days') : t('modal.day')}
+             </div>
+          )}
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t('modal.reason')}</label>
+            <textarea
+              value={formData.reason}
+              onChange={(e) => setFormData({...formData, reason: e.target.value})}
+              className="w-full border-gray-300 rounded-lg shadow-sm border p-2 focus:ring-blue-500 focus:border-blue-500"
+              rows={3}
+              placeholder={t('modal.placeholder')}
+            />
+          </div>
+
+          <div className="pt-2 flex justify-end space-x-3">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+            >
+              {t('modal.btnCancel')}
+            </button>
+            <button
+              type="submit"
+              disabled={loading}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors flex items-center"
+            >
+              {loading ? (
+                <>
+                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  {t('modal.btnSubmitting')}
+                </>
+              ) : t('modal.btnSubmit')}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
