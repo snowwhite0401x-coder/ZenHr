@@ -5,12 +5,13 @@ import { LeaveStatus, LeaveType } from '../types.ts';
 import { NewLeaveModal } from '../components/NewLeaveModal.tsx';
 
 export const CalendarPage: React.FC = () => {
-  const { requests, departments } = useLeaveContext();
+  const { requests, departments, users } = useLeaveContext();
   const { t, language } = useLanguage();
   const [filterDept, setFilterDept] = useState<string>('ALL');
   const [currentDate, setCurrentDate] = useState(new Date());
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<'MONTH' | 'WEEK' | 'LIST'>('MONTH');
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
@@ -108,18 +109,28 @@ export const CalendarPage: React.FC = () => {
               ))}
             </select>
 
-            <button
-              onClick={() => openNewLeaveForDate()}
-              className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-500 text-white text-sm font-semibold shadow-md hover:shadow-lg hover:from-indigo-500 hover:to-indigo-400"
-            >
-              <span className="text-lg">＋</span>
-              {t('my.btnRequest')}
-            </button>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                className="hidden sm:inline-flex items-center gap-1 px-3 py-2 rounded-xl border border-gray-200 text-xs font-medium text-gray-600 hover:bg-gray-50"
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                Filters
+              </button>
+              <button
+                onClick={() => openNewLeaveForDate()}
+                className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-500 text-white text-sm font-semibold shadow-md hover:shadow-lg hover:from-indigo-500 hover:to-indigo-400"
+              >
+                <span className="text-lg">＋</span>
+                {t('my.btnRequest')}
+              </button>
+            </div>
           </div>
         </div>
         
-        {/* Legend */}
-        <div className="flex flex-wrap gap-3 px-1">
+        {/* Legend & view mode */}
+        <div className="flex flex-wrap items-center justify-between gap-3 px-1">
+          <div className="flex flex-wrap gap-2">
           {Object.values(LeaveType).map(type => {
              const style = getLeaveColor(type);
              return (
@@ -129,6 +140,26 @@ export const CalendarPage: React.FC = () => {
                </div>
              )
           })}
+          </div>
+
+          <div className="flex items-center">
+            <div className="inline-flex rounded-full bg-gray-100 p-1 text-xs font-medium text-gray-500">
+              {['MONTH','WEEK','LIST'].map(mode => (
+                <button
+                  key={mode}
+                  type="button"
+                  onClick={() => setViewMode(mode as any)}
+                  className={`px-3 py-1 rounded-full transition-colors ${
+                    viewMode === mode
+                      ? 'bg-white text-indigo-600 shadow-sm'
+                      : 'text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  {mode === 'MONTH' ? 'Month' : mode === 'WEEK' ? 'Week' : 'List'}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
 
@@ -180,16 +211,30 @@ export const CalendarPage: React.FC = () => {
                 <div className="flex flex-col gap-1.5 mt-1 overflow-y-auto custom-scrollbar">
                   {leaves.map(leave => {
                     const style = getLeaveColor(leave.type);
+                    const user = users.find(u => u.id === leave.userId);
+                    const initials = (user?.name || leave.userName || '')
+                      .split(' ')
+                      .filter(Boolean)
+                      .map(part => part[0])
+                      .join('')
+                      .slice(0, 2)
+                      .toUpperCase();
                     return (
                       <div 
                         key={leave.id} 
                         title={`${leave.userName} (${leave.department}) - ${t('type.'+leave.type)}\nReason: ${leave.reason}`}
                         className={`
-                          text-xs px-2 py-1.5 rounded-md border shadow-sm truncate cursor-help flex items-center gap-1.5
+                          text-xs px-2 py-1.5 rounded-md border shadow-sm cursor-pointer flex items-center gap-2
                           ${style.bg} ${style.text} ${style.border}
                         `}
                       >
-                        <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${style.dot}`} />
+                        <div className="w-6 h-6 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center text-[10px] font-bold text-white shrink-0 ring-2 ring-white">
+                          {user?.avatar ? (
+                            <img src={user.avatar} alt={leave.userName} className="w-full h-full object-cover" />
+                          ) : (
+                            <span>{initials || '?'}</span>
+                          )}
+                        </div>
                         <span className="font-semibold truncate">{leave.userName.split(' ')[0]}</span>
                       </div>
                     );
