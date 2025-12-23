@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { LeaveRequest, User, LeaveStatus, LeaveType, RolePermissions, AppFeature, Department } from '../types.ts';
 import { MOCK_REQUESTS, MOCK_USERS, ANNUAL_LEAVE_LIMIT, PUBLIC_HOLIDAY_COUNT } from '../constants.ts';
-import { fetchUsersAndRequests, fetchLeaveSettings, updateLeaveSettings as supabaseUpdateLeaveSettings, updateUser as supabaseUpdateUser } from '../services/supabaseLeaveService';
+import { fetchUsersAndRequests, fetchLeaveSettings, updateLeaveSettings as supabaseUpdateLeaveSettings, updateUser as supabaseUpdateUser, insertLeaveRequest as supabaseInsertLeaveRequest } from '../services/supabaseLeaveService';
 import { useLanguage } from './LanguageContext.tsx';
 
 interface LeaveContextType {
@@ -340,7 +340,7 @@ export const LeaveProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     }
 
     const newRequest: LeaveRequest = {
-      id: Math.random().toString(36).substr(2, 9),
+      id: typeof crypto !== 'undefined' && 'randomUUID' in crypto ? crypto.randomUUID() : Math.random().toString(36).substr(2, 9),
       userId: currentUser.id,
       userName: currentUser.name,
       department: currentUser.department,
@@ -366,6 +366,11 @@ export const LeaveProvider: React.FC<{ children: ReactNode }> = ({ children }) =
             ));
         }
     }
+
+    // บันทึกลง Supabase (ถ้ามีการตั้งค่า)
+    supabaseInsertLeaveRequest(newRequest).catch((err) =>
+      console.warn('[Supabase] Failed to insert leave_request from addRequest', err),
+    );
 
     if (googleSheetsUrl) {
       sendToGoogleSheets(newRequest).catch(() => {});
