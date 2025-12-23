@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { LeaveRequest, User, LeaveStatus, LeaveType, RolePermissions, AppFeature, Department } from '../types.ts';
 import { MOCK_REQUESTS, MOCK_USERS, ANNUAL_LEAVE_LIMIT, PUBLIC_HOLIDAY_COUNT } from '../constants.ts';
+import { fetchUsersAndRequests } from '../services/supabaseLeaveService';
 import { useLanguage } from './LanguageContext.tsx';
 
 interface LeaveContextType {
@@ -53,15 +54,8 @@ const LeaveContext = createContext<LeaveContextType | undefined>(undefined);
 
 export const LeaveProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const { t } = useLanguage();
-  const [users, setUsers] = useState<User[]>(() => {
-    const saved = localStorage.getItem('zenhr_users');
-    return saved ? JSON.parse(saved) : MOCK_USERS;
-  });
-
-  const [requests, setRequests] = useState<LeaveRequest[]>(() => {
-    const saved = localStorage.getItem('zenhr_requests');
-    return saved ? JSON.parse(saved) : MOCK_REQUESTS;
-  });
+  const [users, setUsers] = useState<User[]>([]);
+  const [requests, setRequests] = useState<LeaveRequest[]>([]);
 
   const [departments, setDepartments] = useState<string[]>(() => {
     const saved = localStorage.getItem('zenhr_departments');
@@ -102,6 +96,24 @@ export const LeaveProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
   const currentUser = currentUserId ? users.find(u => u.id === currentUserId) || null : null;
   const isAuthenticated = !!currentUser;
+
+  // Initial load: try Supabase first, then fall back to localStorage/mocks
+  useEffect(() => {
+    (async () => {
+      const fromSupabase = await fetchUsersAndRequests();
+      if (fromSupabase && (fromSupabase.users.length > 0 || fromSupabase.requests.length > 0)) {
+        setUsers(fromSupabase.users);
+        setRequests(fromSupabase.requests);
+        return;
+      }
+
+      const savedUsers = localStorage.getItem('zenhr_users');
+      setUsers(savedUsers ? JSON.parse(savedUsers) : MOCK_USERS);
+
+      const savedReqs = localStorage.getItem('zenhr_requests');
+      setRequests(savedReqs ? JSON.parse(savedReqs) : MOCK_REQUESTS);
+    })();
+  }, []);
 
   useEffect(() => {
     localStorage.setItem('zenhr_users', JSON.stringify(users));
