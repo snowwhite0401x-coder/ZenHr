@@ -52,13 +52,18 @@ export const Profile: React.FC = () => {
 
             if (uploadError) {
                 console.warn('[Supabase] avatar upload failed', uploadError);
-                setMessage('อัปโหลดรูปไม่สำเร็จ กรุณาลองใหม่อีกครั้ง');
+                setMessage(`อัปโหลดรูปไม่สำเร็จ: ${uploadError.message}`);
                 return;
             }
 
-            const {
-                data: { publicUrl },
-            } = supabase.storage.from('avatars').getPublicUrl(filePath);
+            // สร้าง public URL เองเพื่อให้แน่ใจว่ามี /public อยู่
+            // ใช้ getPublicUrl แล้วแก้ path ให้ถูกต้อง
+            const { data } = supabase.storage.from('avatars').getPublicUrl(filePath);
+            // ถ้า URL ที่ได้ไม่มี /public ให้เพิ่มเข้าไป
+            let publicUrl = data.publicUrl;
+            if (!publicUrl.includes('/public/')) {
+                publicUrl = publicUrl.replace('/object/', '/object/public/');
+            }
 
             setAvatar(publicUrl);
             updateUser(currentUser.id, { avatar: publicUrl });
