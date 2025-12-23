@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { LeaveRequest, User, LeaveStatus, LeaveType, RolePermissions, AppFeature, Department } from '../types.ts';
 import { MOCK_REQUESTS, MOCK_USERS, ANNUAL_LEAVE_LIMIT, PUBLIC_HOLIDAY_COUNT } from '../constants.ts';
 import { useLanguage } from './LanguageContext.tsx';
+import { supabase } from '../services/supabaseClient';
 import { fetchUsersAndRequests, insertUser as supabaseInsertUser, updateUser as supabaseUpdateUser, deleteUser as supabaseDeleteUser, insertLeaveRequest as supabaseInsertLeaveRequest, updateLeaveStatus as supabaseUpdateLeaveStatus } from '../services/supabaseLeaveService';
 
 interface LeaveContextType {
@@ -99,6 +100,30 @@ export const LeaveProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       const savedReqs = localStorage.getItem('zenhr_requests');
       setRequests(savedReqs ? JSON.parse(savedReqs) : MOCK_REQUESTS);
     })();
+  }, []);
+
+  // Supabase Realtime: ฟังการเปลี่ยนแปลงในตาราง leave_requests
+  useEffect(() => {
+    if (!supabase) return;
+
+    const channel = supabase
+      .channel('leave-requests-changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'leave_requests' },
+        async () => {
+          const fromSupabase = await fetchUsersAndRequests();
+          if (fromSupabase) {
+            setUsers(fromSupabase.users);
+            setRequests(fromSupabase.requests);
+          }
+        },
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   useEffect(() => {
