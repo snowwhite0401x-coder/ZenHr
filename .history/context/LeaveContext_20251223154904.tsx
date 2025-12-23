@@ -2,6 +2,8 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { LeaveRequest, User, LeaveStatus, LeaveType, RolePermissions, AppFeature, Department } from '../types.ts';
 import { MOCK_REQUESTS, MOCK_USERS, ANNUAL_LEAVE_LIMIT, PUBLIC_HOLIDAY_COUNT } from '../constants.ts';
 import { useLanguage } from './LanguageContext.tsx';
+import { supabase } from '../services/supabaseClient';
+import { fetchUsersAndRequests, insertUser as supabaseInsertUser, updateUser as supabaseUpdateUser, deleteUser as supabaseDeleteUser, insertLeaveRequest as supabaseInsertLeaveRequest, updateLeaveStatus as supabaseUpdateLeaveStatus } from '../services/supabaseLeaveService';
 
 interface LeaveContextType {
   currentUser: User | null;
@@ -50,15 +52,8 @@ const LeaveContext = createContext<LeaveContextType | undefined>(undefined);
 
 export const LeaveProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const { t } = useLanguage();
-  const [users, setUsers] = useState<User[]>(() => {
-    const saved = localStorage.getItem('zenhr_users');
-    return saved ? JSON.parse(saved) : MOCK_USERS;
-  });
-
-  const [requests, setRequests] = useState<LeaveRequest[]>(() => {
-    const saved = localStorage.getItem('zenhr_requests');
-    return saved ? JSON.parse(saved) : MOCK_REQUESTS;
-  });
+  const [users, setUsers] = useState<User[]>([]);
+  const [requests, setRequests] = useState<LeaveRequest[]>([]);
 
   const [departments, setDepartments] = useState<string[]>(() => {
     const saved = localStorage.getItem('zenhr_departments');
@@ -87,6 +82,49 @@ export const LeaveProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
   const currentUser = currentUserId ? users.find(u => u.id === currentUserId) || null : null;
   const isAuthenticated = !!currentUser;
+
+  // Initial load: try Supabase first, then fallback to localStorage/mocks
+  useEffect(() => {
+    (async () => {
+      const fromSupabase = await fetchUsersAndRequests();
+      // ใช้ Supabase เฉพาะเมื่อมีข้อมูลจริงอย่างน้อย 1 รายการ (users หรือ requests)
+      if (fromSupabase && (fromSupabase.users.length > 0 || fromSupabase.requests.length > 0)) {
+        setUsers(fromSupabase.users);
+        setRequests(fromSupabase.requests);
+        return;
+      }
+
+      const savedUsers = localStorage.getItem('zenhr_users');
+      setUsers(savedUsers ? JSON.parse(savedUsers) : MOCK_USERS);
+
+      const savedReqs = localStorage.getItem('zenhr_requests');
+      setRequests(savedReqs ? JSON.parse(savedReqs) : MOCK_REQUESTS);
+    })();
+  }, []);
+
+  // Supabase Realtime: ฟังการเปลี่ยนแปลงในตาราง leave_requests
+  useEffect(() => {
+    if (!supabase) return;
+
+    const channel = supabase
+      .channel('leave-requests-changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'leave_requests' },
+        async () => {
+          const fromSupabase = await fetchUsersAndRequests();
+          if (fromSupabase) {
+            setUsers(fromSupabase.users);
+            setRequests(fromSupabase.requests);
+          }
+        },
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
 
   useEffect(() => {
     localStorage.setItem('zenhr_users', JSON.stringify(users));
@@ -131,14 +169,21 @@ export const LeaveProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
   const addUser = (user: User) => {
     setUsers(prev => [...prev, user]);
+    // sync to Supabase (ถ้าตั้งค่าไว้)
+    supabaseInsertUser({
+      ...user,
+      id: undefined as any, // ไม่ใช้ค่า id ฝั่ง client; Supabase จะสร้างเอง
+    }).catch(() => {});
   };
 
   const updateUser = (id: string, updatedData: Partial<User>) => {
     setUsers(prev => prev.map(u => u.id === id ? { ...u, ...updatedData } : u));
+    supabaseUpdateUser(id, updatedData).catch(() => {});
   };
 
   const deleteUser = (id: string) => {
     setUsers(prev => prev.filter(u => u.id !== id));
+    supabaseDeleteUser(id).catch(() => {});
   };
 
   const addDepartment = (name: string) => {
@@ -286,8 +331,13 @@ export const LeaveProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       }
     }
 
+    const generatedId =
+      typeof crypto !== 'undefined' && 'randomUUID' in crypto
+        ? crypto.randomUUID()
+        : Math.random().toString(36).substr(2, 9);
+
     const newRequest: LeaveRequest = {
-      id: Math.random().toString(36).substr(2, 9),
+      id: generatedId,
       userId: currentUser.id,
       userName: currentUser.name,
       department: currentUser.department,
@@ -297,6 +347,9 @@ export const LeaveProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     };
 
     setRequests(prev => [newRequest, ...prev]);
+
+    // sync คำขอลาไป Supabase (ถ้าตั้งค่าไว้)
+    supabaseInsertLeaveRequest(newRequest).catch(() => {});
 
     if (requestYear === currentYear) {
         if (data.type === LeaveType.ANNUAL) {
@@ -328,6 +381,9 @@ export const LeaveProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     }
 
     setRequests(prev => prev.map(req => req.id === id ? { ...req, status } : req));
+
+    // sync สถานะไป Supabase ด้วย (เพื่อให้รีเฟรชแล้วสถานะไม่ย้อนกลับ)
+    supabaseUpdateLeaveStatus(id, status).catch(() => {});
     
     if (status === LeaveStatus.REJECTED) {
         const req = requests.find(r => r.id === id);
