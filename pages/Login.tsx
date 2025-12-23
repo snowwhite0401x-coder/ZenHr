@@ -63,9 +63,6 @@ export const Login: React.FC = () => {
             {t('login.btn')}
           </button>
         </form>
-        <div className="bg-gray-50 px-8 py-4 text-center text-xs text-gray-500 border-t border-gray-100">
-           Hint: Username <b>admin</b>, Password <b>123456</b>
-        </div>
       </div>
     </div>
   );
