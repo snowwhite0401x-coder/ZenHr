@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useLeaveContext } from '../context/LeaveContext';
 import { useLanguage } from '../context/LanguageContext';
+import { supabase } from '../services/supabaseClient';
 
 export const Profile: React.FC = () => {
     const { currentUser, updateUser } = useLeaveContext();
@@ -11,8 +12,10 @@ export const Profile: React.FC = () => {
     const [name, setName] = useState(currentUser.name);
     const [username, setUsername] = useState(currentUser.username || '');
     const [password, setPassword] = useState(currentUser.password || '');
+    const [avatar, setAvatar] = useState<string | undefined>(currentUser.avatar || undefined);
     const [saving, setSaving] = useState(false);
     const [message, setMessage] = useState<string | null>(null);
+    const [uploading, setUploading] = useState(false);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -23,6 +26,48 @@ export const Profile: React.FC = () => {
 
         setSaving(false);
         setMessage(t('profile.saved'));
+    };
+
+    const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        if (!supabase) {
+            setMessage('ไม่พบการตั้งค่า Supabase สำหรับอัปโหลดรูป');
+            return;
+        }
+
+        try {
+            setUploading(true);
+            setMessage(null);
+
+            const fileExt = file.name.split('.').pop();
+            const filePath = `${currentUser.id}/${Date.now()}.${fileExt}`;
+
+            const { error: uploadError } = await supabase.storage
+                .from('avatars')
+                .upload(filePath, file, {
+                    cacheControl: '3600',
+                    upsert: true,
+                });
+
+            if (uploadError) {
+                console.warn('[Supabase] avatar upload failed', uploadError);
+                setMessage('อัปโหลดรูปไม่สำเร็จ กรุณาลองใหม่อีกครั้ง');
+                return;
+            }
+
+            const {
+                data: { publicUrl },
+            } = supabase.storage.from('avatars').getPublicUrl(filePath);
+
+            setAvatar(publicUrl);
+            updateUser(currentUser.id, { avatar: publicUrl });
+            setMessage('อัปเดตรูปโปรไฟล์เรียบร้อยแล้ว');
+        } finally {
+            setUploading(false);
+            // reset input value so same file can be selected again if needed
+            e.target.value = '';
+        }
     };
 
     return (
@@ -44,9 +89,9 @@ export const Profile: React.FC = () => {
                             <div className="relative mb-2">
                                 <div className="relative w-28 h-28 sm:w-32 sm:h-32 overflow-hidden rounded-full border-[6px] border-white bg-slate-100 shadow-lg">
                                     {/* ใช้ avatar จากระบบ ถ้าไม่มีให้ fallback เป็นตัวอักษรแรกของชื่อ */}
-                                    {currentUser.avatar ? (
+                                    {avatar ? (
                                         <img
-                                            src={currentUser.avatar}
+                                            src={avatar}
                                             alt={currentUser.name}
                                             className="w-full h-full object-cover"
                                         />
@@ -57,6 +102,16 @@ export const Profile: React.FC = () => {
                                     )}
                                 </div>
                             </div>
+                            <label className="mt-1 inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600 cursor-pointer hover:bg-slate-200">
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    className="hidden"
+                                    onChange={handleAvatarChange}
+                                />
+                                <span>เปลี่ยนรูปโปรไฟล์</span>
+                                {uploading && <span className="text-[10px] text-slate-400">กำลังอัปโหลด...</span>}
+                            </label>
                             <h2 className="text-lg sm:text-xl font-bold text-slate-900">
                                 {currentUser.name}
                             </h2>
