@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { LeaveRequest, User, LeaveStatus, LeaveType, RolePermissions, AppFeature, Department } from '../types.ts';
 import { MOCK_REQUESTS, MOCK_USERS, ANNUAL_LEAVE_LIMIT, PUBLIC_HOLIDAY_COUNT } from '../constants.ts';
-import { fetchUsersAndRequests } from '../services/supabaseLeaveService';
+import { fetchUsersAndRequests, fetchLeaveSettings, updateLeaveSettings as supabaseUpdateLeaveSettings } from '../services/supabaseLeaveService';
 import { useLanguage } from './LanguageContext.tsx';
 
 interface LeaveContextType {
@@ -104,14 +104,20 @@ export const LeaveProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       if (fromSupabase && (fromSupabase.users.length > 0 || fromSupabase.requests.length > 0)) {
         setUsers(fromSupabase.users);
         setRequests(fromSupabase.requests);
-        return;
+      } else {
+        const savedUsers = localStorage.getItem('zenhr_users');
+        setUsers(savedUsers ? JSON.parse(savedUsers) : MOCK_USERS);
+
+        const savedReqs = localStorage.getItem('zenhr_requests');
+        setRequests(savedReqs ? JSON.parse(savedReqs) : MOCK_REQUESTS);
       }
 
-      const savedUsers = localStorage.getItem('zenhr_users');
-      setUsers(savedUsers ? JSON.parse(savedUsers) : MOCK_USERS);
-
-      const savedReqs = localStorage.getItem('zenhr_requests');
-      setRequests(savedReqs ? JSON.parse(savedReqs) : MOCK_REQUESTS);
+      // fetch global leave quotas from Supabase if available
+      const settings = await fetchLeaveSettings();
+      if (settings) {
+        setAnnualLeaveLimit(settings.annualLeaveLimit);
+        setPublicHolidayCount(settings.publicHolidayCount);
+      }
     })();
   }, []);
 
@@ -207,6 +213,10 @@ export const LeaveProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const updateLeaveLimits = (annual: number, publicCount: number) => {
     setAnnualLeaveLimit(annual);
     setPublicHolidayCount(publicCount);
+    // persist to Supabase (shared for all users)
+    supabaseUpdateLeaveSettings(annual, publicCount).catch((err) =>
+      console.warn('[Supabase] Failed to update leave_settings', err),
+    );
   };
 
   const updatePermission = (role: 'EMPLOYEE' | 'HR_ADMIN', feature: AppFeature, value: boolean) => {

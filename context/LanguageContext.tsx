@@ -218,6 +218,17 @@ const translations: Record<string, Record<Language, string>> = {
   'policy.publicHoliday': { EN: 'Public holiday per year (days)', TH: 'วันหยุดนักขัตฤกษ์ต่อปี (วัน)' },
   'policy.note': { EN: 'These values are used as default quotas for all employees when requesting leave and in analytics.', TH: 'ค่าดังกล่าวจะถูกใช้เป็นโควต้าพื้นฐานสำหรับพนักงานทุกคนในการขอลาและการคำนวณรายงาน' },
   'policy.save': { EN: 'Save leave quotas', TH: 'บันทึกโควต้าวันลา' },
+
+  // Profile
+  'profile.title': { EN: 'My Profile', TH: 'โปรไฟล์ของฉัน' },
+  'profile.subtitle': { EN: 'Update your name and login information.', TH: 'แก้ไขชื่อและข้อมูลเข้าสู่ระบบของคุณ' },
+  'profile.name': { EN: 'Full name', TH: 'ชื่อ - นามสกุล' },
+  'profile.username': { EN: 'Username', TH: 'ชื่อผู้ใช้' },
+  'profile.password': { EN: 'Password', TH: 'รหัสผ่าน' },
+  'profile.passwordNote': { EN: 'For demo purposes the password is stored in plain text. Do not reuse real passwords.', TH: 'เพื่อการทดสอบเท่านั้น รหัสผ่านจะถูกเก็บแบบไม่เข้ารหัส กรุณาอย่าใช้รหัสผ่านจริงที่ใช้กับระบบอื่น' },
+  'profile.save': { EN: 'Save changes', TH: 'บันทึกการเปลี่ยนแปลง' },
+  'profile.saving': { EN: 'Saving...', TH: 'กำลังบันทึก...' },
+  'profile.saved': { EN: 'Your profile has been updated.', TH: 'บันทึกข้อมูลโปรไฟล์เรียบร้อยแล้ว' },
 };
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);

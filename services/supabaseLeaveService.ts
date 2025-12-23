@@ -28,6 +28,12 @@ type DbLeaveRequest = {
   created_at: string;
 };
 
+type DbLeaveSettings = {
+  id: string;
+  annual_leave_limit: number;
+  public_holiday_count: number;
+};
+
 export async function fetchUsersAndRequests() {
   if (!supabase) return null;
 
@@ -68,6 +74,68 @@ export async function fetchUsersAndRequests() {
   }));
 
   return { users, requests };
+}
+
+// -------- Leave settings (global quotas) -----------------------
+
+export async function fetchLeaveSettings(): Promise<{ annualLeaveLimit: number; publicHolidayCount: number } | null> {
+  if (!supabase) return null;
+
+  const { data, error } = await supabase
+    .from('leave_settings')
+    .select('*')
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    console.warn('[Supabase] Failed to fetch leave_settings', error);
+    return null;
+  }
+
+  if (!data) return null;
+
+  const row = data as DbLeaveSettings;
+  return {
+    annualLeaveLimit: row.annual_leave_limit,
+    publicHolidayCount: row.public_holiday_count,
+  };
+}
+
+export async function updateLeaveSettings(annualLeaveLimit: number, publicHolidayCount: number): Promise<void> {
+  if (!supabase) return;
+
+  // use first row as singleton
+  const { data, error } = await supabase
+    .from('leave_settings')
+    .select('id')
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    console.warn('[Supabase] Failed to read leave_settings for update', error);
+    return;
+  }
+
+  const payload = {
+    annual_leave_limit: annualLeaveLimit,
+    public_holiday_count: publicHolidayCount,
+  };
+
+  if (data && (data as { id: string }).id) {
+    const { error: upError } = await supabase
+      .from('leave_settings')
+      .update(payload)
+      .eq('id', (data as { id: string }).id);
+
+    if (upError) {
+      console.warn('[Supabase] Failed to update leave_settings', upError);
+    }
+  } else {
+    const { error: insError } = await supabase.from('leave_settings').insert(payload);
+    if (insError) {
+      console.warn('[Supabase] Failed to insert leave_settings', insError);
+    }
+  }
 }
 
 export async function insertLeaveRequest(req: LeaveRequest) {

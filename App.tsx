@@ -9,6 +9,7 @@ import { Approvals } from './pages/Approvals.tsx';
 import { Reports } from './pages/Reports.tsx';
 import { Settings } from './pages/Settings.tsx';
 import { Login } from './pages/Login.tsx';
+import { Profile } from './pages/Profile.tsx';
 
 const AppContent = () => {
   const { isAuthenticated } = useLeaveContext();
@@ -27,6 +28,7 @@ const AppContent = () => {
       case 'approvals': return <Approvals />;
       case 'reports': return <Reports />;
       case 'settings': return <Settings />;
+      case 'profile': return <Profile />;
       default: return <Dashboard />;
     }
   };

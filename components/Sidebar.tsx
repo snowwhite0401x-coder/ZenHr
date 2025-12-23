@@ -75,13 +75,16 @@ const Sidebar: React.FC<SidebarProps> = ({ currentPage, setPage, mobileOpen, set
         </nav>
 
         <div className="absolute bottom-0 w-full p-6 border-t border-slate-900 bg-slate-950/80 backdrop-blur-md">
-          <div className="flex items-center space-x-4 p-3 rounded-2xl bg-slate-900/50 border border-slate-800/50 mb-4">
+          <button
+            onClick={() => { setPage('profile'); setMobileOpen(false); }}
+            className="w-full flex items-center space-x-4 p-3 rounded-2xl bg-slate-900/50 border border-slate-800/50 mb-4 text-left hover:bg-slate-800/70 transition-colors"
+          >
             <img src={currentUser.avatar} alt="User" className="w-10 h-10 rounded-xl object-cover ring-2 ring-indigo-500/20 shadow-lg" />
             <div className="flex-1 min-w-0">
               <p className="text-xs font-black text-white truncate uppercase tracking-tighter">{currentUser.name}</p>
               <p className="text-[10px] text-slate-500 font-bold truncate uppercase">{currentUser.department}</p>
             </div>
-          </div>
+          </button>
           
           <button 
             onClick={logout}
