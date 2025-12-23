@@ -61,6 +61,66 @@ const translations: Record<string, Record<Language, string>> = {
   'status.Pending': { EN: 'Processing', TH: 'รอพิจารณา' },
   'status.Approved': { EN: 'Authorized', TH: 'อนุมัติแล้ว' },
   'status.Rejected': { EN: 'Declined', TH: 'ไม่อนุมัติ' },
+
+  // App
+  'app.accessDenied': { EN: 'Access Denied', TH: 'ไม่มีสิทธิ์เข้าถึง' },
+
+  // Modal
+  'modal.btnCancel': { EN: 'Cancel', TH: 'ยกเลิก' },
+
+  // Settings
+  'set.title': { EN: 'System Settings', TH: 'ตั้งค่าระบบ' },
+  'set.tab.users': { EN: 'Users', TH: 'ผู้ใช้งาน' },
+  'set.tab.dept': { EN: 'Departments', TH: 'แผนก' },
+  'set.tab.perm': { EN: 'Permissions', TH: 'สิทธิ์การเข้าถึง' },
+  'set.tab.integrations': { EN: 'Integrations', TH: 'การเชื่อมต่อ' },
+
+  // Settings - Users
+  'set.user.add': { EN: 'Add User', TH: 'เพิ่มผู้ใช้' },
+  'set.user.edit': { EN: 'Edit User', TH: 'แก้ไขผู้ใช้' },
+  'set.user.name': { EN: 'Name', TH: 'ชื่อ' },
+  'set.user.user': { EN: 'Username', TH: 'ชื่อผู้ใช้' },
+  'set.user.dept': { EN: 'Department', TH: 'แผนก' },
+  'set.user.role': { EN: 'Role', TH: 'บทบาท' },
+  'set.user.pass': { EN: 'Password', TH: 'รหัสผ่าน' },
+  'set.user.btnEdit': { EN: 'Edit', TH: 'แก้ไข' },
+  'set.user.del': { EN: 'Delete', TH: 'ลบ' },
+  'set.user.save': { EN: 'Save', TH: 'บันทึก' },
+
+  // Settings - Departments
+  'set.dept.add': { EN: 'Add Department', TH: 'เพิ่มแผนก' },
+  'set.dept.edit': { EN: 'Edit Department', TH: 'แก้ไขแผนก' },
+  'set.dept.name': { EN: 'Department Name', TH: 'ชื่อแผนก' },
+
+  // Settings - Permissions
+  'set.perm.view': { EN: 'View Dashboard', TH: 'ดูภาพรวม' },
+  'set.perm.cal': { EN: 'View Calendar', TH: 'ดูปฏิทิน' },
+  'set.perm.req': { EN: 'Request Leave', TH: 'ขอลา' },
+  'set.perm.app': { EN: 'Approve Leave', TH: 'อนุมัติการลา' },
+  'set.perm.rep': { EN: 'View Reports', TH: 'ดูรายงาน' },
+  'set.perm.set': { EN: 'Manage Settings', TH: 'จัดการตั้งค่า' },
+  'set.perm.access': { EN: 'Access Permissions', TH: 'สิทธิ์การเข้าถึง' },
+
+  // Settings - Google Sheets Integration
+  'set.google.title': { EN: 'Google Sheets Integration', TH: 'เชื่อมต่อกับ Google Sheets' },
+  'set.google.desc': { EN: 'Sync leave data to Google Sheets for analysis and reporting.', TH: 'เชื่อมต่อข้อมูลการลากับ Google Sheets เพื่อการวิเคราะห์และรายงาน' },
+  'set.google.warning': { EN: '⚠️ Important: Make sure your Google Sheet is publicly accessible (or shared with the service account) for this integration to work.', TH: '⚠️ สำคัญ: ตรวจสอบให้แน่ใจว่า Google Sheet ของคุณสามารถเข้าถึงได้แบบสาธารณะ (หรือแชร์กับ service account) เพื่อให้การเชื่อมต่อทำงานได้' },
+  'set.google.url': { EN: 'Google Sheets URL', TH: 'URL ของ Google Sheets' },
+  'set.google.urlWarning': { EN: 'Paste the full URL of your Google Sheet here (e.g., https://docs.google.com/spreadsheets/d/...)', TH: 'วาง URL เต็มของ Google Sheet ของคุณที่นี่ (เช่น https://docs.google.com/spreadsheets/d/...)' },
+  'set.google.test': { EN: 'Test Connection', TH: 'ทดสอบการเชื่อมต่อ' },
+  'set.google.btnAddHeaders': { EN: 'Add Headers to Sheet', TH: 'เพิ่มหัวตารางลงใน Sheet' },
+  'set.google.saved': { EN: 'URL saved successfully!', TH: 'บันทึก URL เรียบร้อยแล้ว!' },
+  'set.google.testSuccess': { EN: 'Connection successful!', TH: 'เชื่อมต่อสำเร็จ!' },
+  'set.google.testFail': { EN: 'Connection failed. Please check the URL and sheet permissions.', TH: 'เชื่อมต่อล้มเหลว กรุณาตรวจสอบ URL และสิทธิ์การเข้าถึง Sheet' },
+  'set.google.headersAdded': { EN: 'Headers added successfully!', TH: 'เพิ่มหัวตารางสำเร็จ!' },
+  'set.google.setup.title': { EN: 'Setup Instructions:', TH: 'วิธีตั้งค่า:' },
+  'set.google.setup.step1': { EN: 'Create a new Google Sheet or use an existing one', TH: 'สร้าง Google Sheet ใหม่หรือใช้ที่มีอยู่' },
+  'set.google.setup.step2': { EN: 'Copy the full URL from your browser', TH: 'คัดลอก URL เต็มจากเบราว์เซอร์' },
+  'set.google.setup.step3': { EN: 'Paste the URL in the field above', TH: 'วาง URL ในช่องด้านบน' },
+  'set.google.setup.step4': { EN: 'Make sure the sheet is publicly accessible (File > Share > Anyone with the link)', TH: 'ตรวจสอบให้แน่ใจว่า Sheet สามารถเข้าถึงได้แบบสาธารณะ (ไฟล์ > แชร์ > ทุกคนที่มีลิงก์)' },
+  'set.google.setup.step5': { EN: 'Click "Save" to save the URL', TH: 'คลิก "บันทึก" เพื่อบันทึก URL' },
+  'set.google.setup.step6': { EN: 'Click "Test Connection" to verify it works', TH: 'คลิก "ทดสอบการเชื่อมต่อ" เพื่อตรวจสอบว่าใช้งานได้' },
+  'set.google.setup.step7': { EN: 'Click "Add Headers to Sheet" to create the column headers', TH: 'คลิก "เพิ่มหัวตารางลงใน Sheet" เพื่อสร้างหัวคอลัมน์' },
 };
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
