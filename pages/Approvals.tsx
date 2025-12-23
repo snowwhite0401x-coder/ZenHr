@@ -33,7 +33,7 @@ export const Approvals: React.FC = () => {
                     <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded border border-gray-200">{req.department}</span>
                   </div>
                   <div className="text-sm text-gray-600 mt-1">
-                    <span className="font-medium text-blue-600">{t(`type.${req.type}`)}</span> • {req.daysCount} {t('my.unit.days')} • {req.startDate} to {req.endDate}
+                    <span className="font-medium text-blue-600">{t(`type.${req.type}`)}</span> • {req.daysCount} {t('my.unit.days')} • {req.startDate} {t('common.to')} {req.endDate}
                   </div>
                   {req.reason && (
                     <p className="text-sm text-gray-500 mt-2 bg-gray-50 p-2 rounded italic border border-gray-100 inline-block">

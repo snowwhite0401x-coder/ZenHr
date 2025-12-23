@@ -274,7 +274,7 @@ export const Reports: React.FC = () => {
              </div>
              
              <div className="ml-auto text-sm text-gray-500 self-end pb-2">
-                Found: <b>{filteredRequests.length}</b> records
+                {t('common.found')} <b>{filteredRequests.length}</b> {t('rep.records')}
              </div>
           </div>
 
@@ -308,7 +308,7 @@ export const Reports: React.FC = () => {
                             <span className="px-2 py-1 rounded text-xs border bg-gray-50 border-gray-200">{req.department}</span>
                         </td>
                         <td className="px-6 py-4">{t('type.' + req.type)}</td>
-                        <td className="px-6 py-4 whitespace-nowrap">{req.startDate} <span className="text-gray-400">to</span> {req.endDate}</td>
+                        <td className="px-6 py-4 whitespace-nowrap">{req.startDate} <span className="text-gray-400">{t('common.to')}</span> {req.endDate}</td>
                         <td className="px-6 py-4 font-semibold">{req.daysCount}</td>
                         <td className="px-6 py-4 truncate max-w-[150px]" title={req.reason}>{req.reason || '-'}</td>
                         <td className="px-6 py-4">
@@ -461,7 +461,7 @@ export const Reports: React.FC = () => {
                                     <tr key={req.id} className="bg-white border-b hover:bg-gray-50">
                                         <td className="px-6 py-4">{req.createdAt.split('T')[0]}</td>
                                         <td className="px-6 py-4">{t('type.' + req.type)}</td>
-                                        <td className="px-6 py-4 whitespace-nowrap">{req.startDate} to {req.endDate}</td>
+                                        <td className="px-6 py-4 whitespace-nowrap">{req.startDate} {t('common.to')} {req.endDate}</td>
                                         <td className="px-6 py-4">{req.daysCount}</td>
                                         <td className="px-6 py-4">{req.reason || '-'}</td>
                                         <td className="px-6 py-4">
@@ -482,7 +482,7 @@ export const Reports: React.FC = () => {
               </>
            ) : (
              <div className="text-center py-12 bg-gray-50 rounded-xl border border-dashed border-gray-300">
-                <p className="text-gray-400">{selectedUserId ? 'No data found.' : t('rep.ind.selectPlaceholder')}</p>
+                <p className="text-gray-400">{selectedUserId ? t('common.noDataFound') : t('rep.ind.selectPlaceholder')}</p>
              </div>
            )}
         </div>

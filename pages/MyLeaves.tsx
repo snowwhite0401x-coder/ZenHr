@@ -116,7 +116,7 @@ export const MyLeaves: React.FC = () => {
                   <span className="text-3xl font-bold text-gray-900">{personalStats.year}</span>
                   <span className="text-sm text-gray-400 mb-1 ml-1">{t('my.unit.daysYear')}</span>
               </div>
-              <p className="text-xs text-gray-400 mt-1">Unlimited quota</p>
+              <p className="text-xs text-gray-400 mt-1">{t('my.unlimited')}</p>
             </div>
             <div className="mt-4 pt-4 border-t border-gray-50 text-xs text-gray-500">
                <span>{t('my.stat.thisMonth')}: <b className="text-gray-800">{personalStats.month} {t('my.unit.days')}</b></span>
@@ -131,7 +131,7 @@ export const MyLeaves: React.FC = () => {
                   <span className="text-3xl font-bold text-gray-900">{sickStats.year}</span>
                   <span className="text-sm text-gray-400 mb-1 ml-1">{t('my.unit.daysYear')}</span>
               </div>
-              <p className="text-xs text-gray-400 mt-1">Unlimited quota</p>
+              <p className="text-xs text-gray-400 mt-1">{t('my.unlimited')}</p>
             </div>
             <div className="mt-4 pt-4 border-t border-gray-50 text-xs text-gray-500">
                <span>{t('my.stat.thisMonth')}: <b className="text-gray-800">{sickStats.month} {t('my.unit.days')}</b></span>
@@ -153,7 +153,7 @@ export const MyLeaves: React.FC = () => {
                   scope="col" 
                   className="px-6 py-3 cursor-pointer hover:bg-gray-100 transition-colors select-none group"
                   onClick={toggleSort}
-                  title="Click to sort"
+                  title={t('my.sortTitle')}
                 >
                   <div className="flex items-center gap-1">
                     {t('my.table.dates')}
@@ -176,7 +176,7 @@ export const MyLeaves: React.FC = () => {
                 sortedRequests.map((req) => (
                   <tr key={req.id} className="bg-white border-b hover:bg-gray-50">
                     <td className="px-6 py-4 font-medium text-gray-900">{t(`type.${req.type}`)}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">{req.startDate} <span className="text-gray-400 mx-1">to</span> {req.endDate}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{req.startDate} <span className="text-gray-400 mx-1">{t('common.to')}</span> {req.endDate}</td>
                     <td className="px-6 py-4">{req.daysCount} {t('my.unit.days')}</td>
                     <td className="px-6 py-4 truncate max-w-xs">{req.reason || '-'}</td>
                     <td className="px-6 py-4">
