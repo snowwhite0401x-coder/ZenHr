@@ -70,8 +70,8 @@ export const MyLeaves: React.FC = () => {
             onClick={() => setIsModalOpen(true)}
             className="group relative inline-flex items-center justify-center px-6 md:px-8 py-3.5 text-sm md:text-base font-medium text-white transition-all duration-200 bg-gradient-to-r from-indigo-500 to-violet-500 rounded-2xl hover:shadow-lg hover:shadow-indigo-500/30 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 active:scale-95"
           >
-            <span className="material-icons-round mr-2 text-xl group-hover:rotate-90 transition-transform duration-300">
-              add
+            <span className="mr-2 text-lg font-bold group-hover:rotate-90 transition-transform duration-300">
+              +
             </span>
             {t('my.btnRequest')}
           </button>
