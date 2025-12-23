@@ -86,9 +86,6 @@ const translations: Record<string, Record<Language, string>> = {
   'set.user.btnEdit': { EN: 'Edit', TH: 'แก้ไข' },
   'set.user.del': { EN: 'Delete', TH: 'ลบ' },
   'set.user.save': { EN: 'Save', TH: 'บันทึก' },
-  'set.action': { EN: 'Action', TH: 'การดำเนินการ' },
-  'set.user.confirmDelete': { EN: 'Delete user?', TH: 'ต้องการลบผู้ใช้นี้หรือไม่?' },
-  'set.dept.confirmDelete': { EN: 'Delete department "{name}"?', TH: 'ต้องการลบแผนก "{name}" หรือไม่?' },
 
   // Settings - Departments
   'set.dept.add': { EN: 'Add Department', TH: 'เพิ่มแผนก' },

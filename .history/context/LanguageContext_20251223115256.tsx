@@ -57,7 +57,7 @@ const translations: Record<string, Record<Language, string>> = {
   'type.Sick Leave': { EN: 'Sick Leave', TH: 'ลาป่วย' },
   'type.Personal Leave': { EN: 'Personal Leave', TH: 'ลากิจ' },
   'type.Public Holiday': { EN: 'Statutory Holiday', TH: 'วันหยุดนักขัตฤกษ์' },
-
+  
   'status.Pending': { EN: 'Processing', TH: 'รอพิจารณา' },
   'status.Approved': { EN: 'Authorized', TH: 'อนุมัติแล้ว' },
   'status.Rejected': { EN: 'Declined', TH: 'ไม่อนุมัติ' },
@@ -86,9 +86,6 @@ const translations: Record<string, Record<Language, string>> = {
   'set.user.btnEdit': { EN: 'Edit', TH: 'แก้ไข' },
   'set.user.del': { EN: 'Delete', TH: 'ลบ' },
   'set.user.save': { EN: 'Save', TH: 'บันทึก' },
-  'set.action': { EN: 'Action', TH: 'การดำเนินการ' },
-  'set.user.confirmDelete': { EN: 'Delete user?', TH: 'ต้องการลบผู้ใช้นี้หรือไม่?' },
-  'set.dept.confirmDelete': { EN: 'Delete department "{name}"?', TH: 'ต้องการลบแผนก "{name}" หรือไม่?' },
 
   // Settings - Departments
   'set.dept.add': { EN: 'Add Department', TH: 'เพิ่มแผนก' },

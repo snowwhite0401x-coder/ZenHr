@@ -124,7 +124,7 @@ export const Settings: React.FC = () => {
   };
 
   const handleDeleteDept = (name: string) => {
-    if (!window.confirm(`Delete department "${name}"?`)) return;
+    if (!window.confirm(t('set.dept.confirmDelete').replace('{name}', name))) return;
     const result = deleteDepartment(name);
     if (!result.success) {
         alert(result.message);
@@ -220,7 +220,7 @@ export const Settings: React.FC = () => {
                     <th className="px-6 py-3">{t('set.user.user')}</th>
                     <th className="px-6 py-3">{t('set.user.dept')}</th>
                     <th className="px-6 py-3">{t('set.user.role')}</th>
-                    <th className="px-6 py-3 text-right">Action</th>
+                    <th className="px-6 py-3 text-right">{t('set.action')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -250,7 +250,7 @@ export const Settings: React.FC = () => {
                         </button>
                         {u.id !== currentUser.id && (
                           <button 
-                            onClick={() => { if(window.confirm('Delete user?')) deleteUser(u.id) }}
+                            onClick={() => { if(window.confirm(t('set.user.confirmDelete'))) deleteUser(u.id) }}
                             className="text-red-500 hover:text-red-700 font-medium"
                           >
                             {t('set.user.del')}
@@ -283,7 +283,7 @@ export const Settings: React.FC = () => {
                 <thead className="text-xs text-gray-700 uppercase bg-gray-50">
                   <tr>
                     <th className="px-6 py-3">{t('set.dept.name')}</th>
-                    <th className="px-6 py-3 text-right">Action</th>
+                    <th className="px-6 py-3 text-right">{t('set.action')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -478,8 +478,8 @@ export const Settings: React.FC = () => {
                    <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">{t('set.user.role')}</label>
                       <select className="w-full border p-2 rounded" value={formData.role} onChange={e => setFormData({...formData, role: e.target.value as any})}>
-                        <option value="EMPLOYEE">Employee</option>
-                        <option value="HR_ADMIN">Admin</option>
+                        <option value="EMPLOYEE">{t('role.employee')}</option>
+                        <option value="HR_ADMIN">{t('role.admin')}</option>
                       </select>
                    </div>
                 </div>
