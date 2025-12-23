@@ -86,7 +86,8 @@ export const LeaveProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   useEffect(() => {
     (async () => {
       const fromSupabase = await fetchUsersAndRequests();
-      if (fromSupabase && fromSupabase.users.length > 0) {
+      // ใช้ Supabase เฉพาะเมื่อมีข้อมูลจริงอย่างน้อย 1 รายการ (users หรือ requests)
+      if (fromSupabase && (fromSupabase.users.length > 0 || fromSupabase.requests.length > 0)) {
         setUsers(fromSupabase.users);
         setRequests(fromSupabase.requests);
         return;
@@ -305,8 +306,13 @@ export const LeaveProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       }
     }
 
+    const generatedId =
+      typeof crypto !== 'undefined' && 'randomUUID' in crypto
+        ? crypto.randomUUID()
+        : Math.random().toString(36).substr(2, 9);
+
     const newRequest: LeaveRequest = {
-      id: Math.random().toString(36).substr(2, 9),
+      id: generatedId,
       userId: currentUser.id,
       userName: currentUser.name,
       department: currentUser.department,

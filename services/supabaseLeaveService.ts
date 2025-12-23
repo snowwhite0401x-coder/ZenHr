@@ -73,7 +73,8 @@ export async function fetchUsersAndRequests() {
 export async function insertLeaveRequest(req: LeaveRequest) {
   if (!supabase) return;
 
-  const payload: DbLeaveRequest = {
+  // สำหรับ insert เราให้ Supabase สร้าง created_at เอง และใช้ id แบบ UUID จากฝั่ง client
+  const payload = {
     id: req.id,
     user_id: req.userId,
     user_name: req.userName,
@@ -83,11 +84,10 @@ export async function insertLeaveRequest(req: LeaveRequest) {
     end_date: req.endDate,
     days_count: req.daysCount,
     status: req.status,
-    reason: req.reason,
-    created_at: req.createdAt,
+    reason: req.reason || null,
   };
 
-  const { error } = await supabase.from('leave_requests').upsert(payload, { onConflict: 'id' });
+  const { error } = await supabase.from('leave_requests').insert(payload);
   if (error) {
     console.warn('[Supabase] Failed to insert leave_request', error);
   }
