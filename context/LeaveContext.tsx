@@ -11,6 +11,8 @@ interface LeaveContextType {
   isAuthenticated: boolean;
   permissions: RolePermissions;
   googleSheetsUrl: string;
+  annualLeaveLimit: number;
+  publicHolidayCount: number;
   login: (username: string, pass: string) => boolean;
   logout: () => void;
   addUser: (user: User) => void;
@@ -25,6 +27,7 @@ interface LeaveContextType {
   addDepartment: (name: string) => { success: boolean; message: string };
   updateDepartment: (oldName: string, newName: string) => { success: boolean; message: string };
   deleteDepartment: (name: string) => { success: boolean; message: string };
+  updateLeaveLimits: (annual: number, publicCount: number) => void;
 }
 
 const DEFAULT_PERMISSIONS: RolePermissions = {
@@ -81,6 +84,18 @@ export const LeaveProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     return localStorage.getItem('zenhr_gsheet_url') || '';
   });
 
+  const [annualLeaveLimit, setAnnualLeaveLimit] = useState<number>(() => {
+    const saved = localStorage.getItem('zenhr_annual_limit');
+    const n = saved ? Number(saved) : NaN;
+    return Number.isFinite(n) && n > 0 ? n : ANNUAL_LEAVE_LIMIT;
+  });
+
+  const [publicHolidayCount, setPublicHolidayCount] = useState<number>(() => {
+    const saved = localStorage.getItem('zenhr_public_holiday_count');
+    const n = saved ? Number(saved) : NaN;
+    return Number.isFinite(n) && n > 0 ? n : PUBLIC_HOLIDAY_COUNT;
+  });
+
   const [currentUserId, setCurrentUserId] = useState<string | null>(() => {
     return localStorage.getItem('zenhr_current_user_id');
   });
@@ -115,6 +130,14 @@ export const LeaveProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   useEffect(() => {
     localStorage.setItem('zenhr_gsheet_url', googleSheetsUrl);
   }, [googleSheetsUrl]);
+
+  useEffect(() => {
+    localStorage.setItem('zenhr_annual_limit', String(annualLeaveLimit));
+  }, [annualLeaveLimit]);
+
+  useEffect(() => {
+    localStorage.setItem('zenhr_public_holiday_count', String(publicHolidayCount));
+  }, [publicHolidayCount]);
 
   const login = (username: string, pass: string): boolean => {
     const user = users.find(u => u.username === username && u.password === pass);
@@ -167,6 +190,11 @@ export const LeaveProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     }
     setDepartments(prev => prev.filter(d => d !== name));
     return { success: true, message: t('msg.deptDeleted') };
+  };
+
+  const updateLeaveLimits = (annual: number, publicCount: number) => {
+    setAnnualLeaveLimit(annual);
+    setPublicHolidayCount(publicCount);
   };
 
   const updatePermission = (role: 'EMPLOYEE' | 'HR_ADMIN', feature: AppFeature, value: boolean) => {
@@ -274,15 +302,15 @@ export const LeaveProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
     if (data.type === LeaveType.ANNUAL) {
       const usedInRequestedYear = calculateUsedInYear(LeaveType.ANNUAL);
-      if (usedInRequestedYear + data.daysCount > ANNUAL_LEAVE_LIMIT) {
-        return { success: false, message: t('err.annualLimit', { days: Math.max(0, ANNUAL_LEAVE_LIMIT - usedInRequestedYear) }) };
+      if (usedInRequestedYear + data.daysCount > annualLeaveLimit) {
+        return { success: false, message: t('err.annualLimit', { days: Math.max(0, annualLeaveLimit - usedInRequestedYear) }) };
       }
     }
 
     if (data.type === LeaveType.PUBLIC_HOLIDAY) {
       const usedInRequestedYear = calculateUsedInYear(LeaveType.PUBLIC_HOLIDAY);
-      if (usedInRequestedYear + data.daysCount > PUBLIC_HOLIDAY_COUNT) {
-        return { success: false, message: t('err.publicLimit', { days: Math.max(0, PUBLIC_HOLIDAY_COUNT - usedInRequestedYear) }) };
+      if (usedInRequestedYear + data.daysCount > publicHolidayCount) {
+        return { success: false, message: t('err.publicLimit', { days: Math.max(0, publicHolidayCount - usedInRequestedYear) }) };
       }
     }
 
@@ -354,7 +382,7 @@ export const LeaveProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   };
 
   return (
-    <LeaveContext.Provider value={{ currentUser, users, requests, departments, isAuthenticated, permissions, googleSheetsUrl, login, logout, addUser, updateUser, deleteUser, addRequest, updateRequestStatus, updatePermission, saveGoogleSheetsUrl, testGoogleSheetsConnection, sendHeadersToSheet, addDepartment, updateDepartment, deleteDepartment }}>
+    <LeaveContext.Provider value={{ currentUser, users, requests, departments, isAuthenticated, permissions, googleSheetsUrl, annualLeaveLimit, publicHolidayCount, login, logout, addUser, updateUser, deleteUser, addRequest, updateRequestStatus, updatePermission, saveGoogleSheetsUrl, testGoogleSheetsConnection, sendHeadersToSheet, addDepartment, updateDepartment, deleteDepartment, updateLeaveLimits }}>
       {children}
     </LeaveContext.Provider>
   );

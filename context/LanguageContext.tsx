@@ -88,6 +88,7 @@ const translations: Record<string, Record<Language, string>> = {
   'set.tab.dept': { EN: 'Departments', TH: 'แผนก' },
   'set.tab.perm': { EN: 'Permissions', TH: 'สิทธิ์การเข้าถึง' },
   'set.tab.integrations': { EN: 'Integrations', TH: 'การเชื่อมต่อ' },
+  'set.tab.policy': { EN: 'Leave Policy', TH: 'โควต้าวันลา' },
 
   // Settings - Users
   'set.user.add': { EN: 'Add User', TH: 'เพิ่มผู้ใช้' },
@@ -209,6 +210,14 @@ const translations: Record<string, Record<Language, string>> = {
   'common.to': { EN: 'to', TH: 'ถึง' },
   'common.found': { EN: 'Found:', TH: 'พบ:' },
   'common.noDataFound': { EN: 'No data found.', TH: 'ไม่พบข้อมูล' },
+
+  // Leave policy
+  'policy.title': { EN: 'Company Leave Quotas', TH: 'โควต้าวันลามาตรฐานของบริษัท' },
+  'policy.subtitle': { EN: 'Set default annual quotas used for validation and dashboards.', TH: 'กำหนดโควต้าวันลาพื้นฐานที่ใช้ตรวจสอบสิทธิ์และคำนวณรายงาน' },
+  'policy.annual': { EN: 'Annual leave per year (days)', TH: 'ลาพักร้อนต่อปี (วัน)' },
+  'policy.publicHoliday': { EN: 'Public holiday per year (days)', TH: 'วันหยุดนักขัตฤกษ์ต่อปี (วัน)' },
+  'policy.note': { EN: 'These values are used as default quotas for all employees when requesting leave and in analytics.', TH: 'ค่าดังกล่าวจะถูกใช้เป็นโควต้าพื้นฐานสำหรับพนักงานทุกคนในการขอลาและการคำนวณรายงาน' },
+  'policy.save': { EN: 'Save leave quotas', TH: 'บันทึกโควต้าวันลา' },
 };
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);

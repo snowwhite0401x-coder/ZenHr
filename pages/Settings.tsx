@@ -5,9 +5,9 @@ import { useLanguage } from '../context/LanguageContext';
 import { User, AppFeature } from '../types';
 
 export const Settings: React.FC = () => {
-  const { users, departments, addUser, updateUser, deleteUser, currentUser, permissions, updatePermission, googleSheetsUrl, saveGoogleSheetsUrl, testGoogleSheetsConnection, sendHeadersToSheet, addDepartment, updateDepartment, deleteDepartment } = useLeaveContext();
+  const { users, departments, addUser, updateUser, deleteUser, currentUser, permissions, updatePermission, googleSheetsUrl, saveGoogleSheetsUrl, testGoogleSheetsConnection, sendHeadersToSheet, addDepartment, updateDepartment, deleteDepartment, annualLeaveLimit, publicHolidayCount, updateLeaveLimits } = useLeaveContext();
   const { t } = useLanguage();
-  const [activeTab, setActiveTab] = useState<'USERS' | 'DEPARTMENTS' | 'PERMISSIONS' | 'INTEGRATIONS'>('USERS');
+  const [activeTab, setActiveTab] = useState<'USERS' | 'DEPARTMENTS' | 'PERMISSIONS' | 'INTEGRATIONS' | 'POLICY'>('USERS');
   const [showUserModal, setShowUserModal] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -24,6 +24,10 @@ export const Settings: React.FC = () => {
   const [testingConnection, setTestingConnection] = useState(false);
   const [testResult, setTestResult] = useState<'SUCCESS' | 'FAIL' | null>(null);
   const [headersAdded, setHeadersAdded] = useState(false);
+
+  // Leave policy state
+  const [annualLimitInput, setAnnualLimitInput] = useState<number>(annualLeaveLimit);
+  const [publicHolidayInput, setPublicHolidayInput] = useState<number>(publicHolidayCount);
 
   useEffect(() => {
     setSheetUrl(googleSheetsUrl);
@@ -198,6 +202,12 @@ export const Settings: React.FC = () => {
           className={`px-6 py-3 font-medium text-sm transition-colors whitespace-nowrap ${activeTab === 'INTEGRATIONS' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
         >
           {t('set.tab.integrations')}
+        </button>
+        <button
+          onClick={() => setActiveTab('POLICY')}
+          className={`px-6 py-3 font-medium text-sm transition-colors whitespace-nowrap ${activeTab === 'POLICY' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
+        >
+          {t('set.tab.policy')}
         </button>
       </div>
 
@@ -445,6 +455,56 @@ export const Settings: React.FC = () => {
                   <li>{t('set.google.setup.step6')}</li>
                   <li>{t('set.google.setup.step7')}</li>
                 </ol>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* LEAVE POLICY TAB */}
+        {activeTab === 'POLICY' && (
+          <div className="space-y-8">
+            <div className="max-w-xl">
+              <h2 className="text-lg font-semibold text-gray-800 mb-2">{t('policy.title')}</h2>
+              <p className="text-sm text-gray-500 mb-4">{t('policy.subtitle')}</p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    {t('policy.annual')}
+                  </label>
+                  <input
+                    type="number"
+                    min={0}
+                    className="w-full border rounded-lg p-2 text-sm"
+                    value={annualLimitInput}
+                    onChange={(e) => setAnnualLimitInput(Number(e.target.value) || 0)}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    {t('policy.publicHoliday')}
+                  </label>
+                  <input
+                    type="number"
+                    min={0}
+                    className="w-full border rounded-lg p-2 text-sm"
+                    value={publicHolidayInput}
+                    onChange={(e) => setPublicHolidayInput(Number(e.target.value) || 0)}
+                  />
+                </div>
+              </div>
+
+              <p className="mt-3 text-xs text-gray-500">
+                {t('policy.note')}
+              </p>
+
+              <div className="mt-6">
+                <button
+                  onClick={() => updateLeaveLimits(annualLimitInput, publicHolidayInput)}
+                  className="bg-blue-600 text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+                >
+                  {t('policy.save')}
+                </button>
               </div>
             </div>
           </div>

@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { LeaveType, LeaveStatus } from '../types.ts';
 import { useLeaveContext } from '../context/LeaveContext.tsx';
 import { useLanguage } from '../context/LanguageContext.tsx';
-import { ANNUAL_LEAVE_LIMIT, PUBLIC_HOLIDAY_COUNT } from '../constants.ts';
 
 interface Props {
   isOpen: boolean;
@@ -10,7 +9,7 @@ interface Props {
 }
 
 export const NewLeaveModal: React.FC<Props> = ({ isOpen, onClose }) => {
-  const { addRequest, currentUser, requests } = useLeaveContext();
+  const { addRequest, currentUser, requests, annualLeaveLimit, publicHolidayCount } = useLeaveContext();
   const { t } = useLanguage();
   const [formData, setFormData] = useState({
     type: LeaveType.ANNUAL,
@@ -28,23 +27,23 @@ export const NewLeaveModal: React.FC<Props> = ({ isOpen, onClose }) => {
     const s = new Date(start);
     const e = new Date(end);
     const diffTime = Math.abs(e.getTime() - s.getTime());
-    return Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1; 
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
   };
 
   const daysCount = calculateDays(formData.startDate, formData.endDate);
-  
+
   // Calculate remaining balance dynamically based on selected Start Date's Year
   const selectedYear = formData.startDate ? new Date(formData.startDate).getFullYear() : new Date().getFullYear();
-  
+
   const getUsedInYear = (type: LeaveType) => {
-      return requests
-          .filter(r => 
-              r.userId === currentUser.id &&
-              r.status !== LeaveStatus.REJECTED &&
-              r.type === type &&
-              new Date(r.startDate).getFullYear() === selectedYear
-          )
-          .reduce((sum, r) => sum + r.daysCount, 0);
+    return requests
+      .filter(r =>
+        r.userId === currentUser.id &&
+        r.status !== LeaveStatus.REJECTED &&
+        r.type === type &&
+        new Date(r.startDate).getFullYear() === selectedYear
+      )
+      .reduce((sum, r) => sum + r.daysCount, 0);
   };
 
   const usedAnnual = getUsedInYear(LeaveType.ANNUAL);
@@ -90,7 +89,7 @@ export const NewLeaveModal: React.FC<Props> = ({ isOpen, onClose }) => {
           <h2 className="text-white font-semibold text-lg">{t('modal.title')}</h2>
           <button onClick={onClose} className="text-white hover:text-blue-200 text-2xl">&times;</button>
         </div>
-        
+
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           {error && (
             <div className="bg-red-50 text-red-600 text-sm p-3 rounded-lg border border-red-200">
@@ -102,7 +101,7 @@ export const NewLeaveModal: React.FC<Props> = ({ isOpen, onClose }) => {
             <label className="block text-sm font-medium text-gray-700 mb-1">{t('modal.type')}</label>
             <select
               value={formData.type}
-              onChange={(e) => setFormData({...formData, type: e.target.value as LeaveType})}
+              onChange={(e) => setFormData({ ...formData, type: e.target.value as LeaveType })}
               className="w-full border-gray-300 rounded-lg shadow-sm border p-2 focus:ring-blue-500 focus:border-blue-500"
             >
               {Object.values(LeaveType).map(v => (
@@ -111,12 +110,12 @@ export const NewLeaveModal: React.FC<Props> = ({ isOpen, onClose }) => {
             </select>
             {formData.type === LeaveType.ANNUAL && (
               <p className="text-xs text-orange-500 mt-1">
-                {selectedYear} {t('modal.balance')}: {Math.max(0, ANNUAL_LEAVE_LIMIT - usedAnnual)} / {ANNUAL_LEAVE_LIMIT} {t('modal.remaining')}
+                {selectedYear} {t('modal.balance')}: {Math.max(0, annualLeaveLimit - usedAnnual)} / {annualLeaveLimit} {t('modal.remaining')}
               </p>
             )}
             {formData.type === LeaveType.PUBLIC_HOLIDAY && (
               <p className="text-xs text-orange-500 mt-1">
-                {selectedYear} {t('modal.balance')}: {Math.max(0, PUBLIC_HOLIDAY_COUNT - usedPublic)} / {PUBLIC_HOLIDAY_COUNT} {t('modal.remaining')}
+                {selectedYear} {t('modal.balance')}: {Math.max(0, publicHolidayCount - usedPublic)} / {publicHolidayCount} {t('modal.remaining')}
               </p>
             )}
           </div>
@@ -128,7 +127,7 @@ export const NewLeaveModal: React.FC<Props> = ({ isOpen, onClose }) => {
                 type="date"
                 required
                 value={formData.startDate}
-                onChange={(e) => setFormData({...formData, startDate: e.target.value})}
+                onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
                 className="w-full border-gray-300 rounded-lg shadow-sm border p-2 focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
@@ -138,23 +137,23 @@ export const NewLeaveModal: React.FC<Props> = ({ isOpen, onClose }) => {
                 type="date"
                 required
                 value={formData.endDate}
-                onChange={(e) => setFormData({...formData, endDate: e.target.value})}
+                onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
                 className="w-full border-gray-300 rounded-lg shadow-sm border p-2 focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
           </div>
 
           {daysCount > 0 && (
-             <div className="text-right text-sm text-gray-600 font-medium">
-               {t('modal.duration')}: {daysCount} {daysCount > 1 ? t('modal.days') : t('modal.day')}
-             </div>
+            <div className="text-right text-sm text-gray-600 font-medium">
+              {t('modal.duration')}: {daysCount} {daysCount > 1 ? t('modal.days') : t('modal.day')}
+            </div>
           )}
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">{t('modal.reason')}</label>
             <textarea
               value={formData.reason}
-              onChange={(e) => setFormData({...formData, reason: e.target.value})}
+              onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
               className="w-full border-gray-300 rounded-lg shadow-sm border p-2 focus:ring-blue-500 focus:border-blue-500"
               rows={3}
               placeholder={t('modal.placeholder')}
