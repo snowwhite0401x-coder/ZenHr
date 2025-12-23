@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { LeaveRequest, User, LeaveStatus, LeaveType, RolePermissions, AppFeature, Department } from '../types.ts';
 import { MOCK_REQUESTS, MOCK_USERS, ANNUAL_LEAVE_LIMIT, PUBLIC_HOLIDAY_COUNT } from '../constants.ts';
-import { fetchUsersAndRequests, fetchLeaveSettings, updateLeaveSettings as supabaseUpdateLeaveSettings } from '../services/supabaseLeaveService';
+import { fetchUsersAndRequests, fetchLeaveSettings, updateLeaveSettings as supabaseUpdateLeaveSettings, updateUser as supabaseUpdateUser } from '../services/supabaseLeaveService';
 import { useLanguage } from './LanguageContext.tsx';
 
 interface LeaveContextType {
@@ -176,6 +176,9 @@ export const LeaveProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
   const updateUser = (id: string, updatedData: Partial<User>) => {
     setUsers(prev => prev.map(u => u.id === id ? { ...u, ...updatedData } : u));
+    supabaseUpdateUser(id, updatedData).catch((err) =>
+      console.warn('[Supabase] Failed to update user profile', err),
+    );
   };
 
   const deleteUser = (id: string) => {
