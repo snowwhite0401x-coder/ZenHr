@@ -2,12 +2,15 @@ import React, { useState } from 'react';
 import { useLeaveContext } from '../context/LeaveContext.tsx';
 import { useLanguage } from '../context/LanguageContext.tsx';
 import { LeaveStatus, LeaveType } from '../types.ts';
+import { NewLeaveModal } from '../components/NewLeaveModal.tsx';
 
 export const CalendarPage: React.FC = () => {
   const { requests, departments } = useLeaveContext();
   const { t, language } = useLanguage();
   const [filterDept, setFilterDept] = useState<string>('ALL');
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
@@ -65,37 +68,53 @@ export const CalendarPage: React.FC = () => {
     }
   };
 
+  const openNewLeaveForDate = (dateStr?: string) => {
+    setSelectedDate(dateStr || null);
+    setIsModalOpen(true);
+  };
+
   return (
     <div className="space-y-6 h-[calc(100vh-8rem)] flex flex-col">
       <div className="flex flex-col gap-4 shrink-0">
-        <div className="flex flex-col sm:flex-row justify-between items-center bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+        <div className="flex flex-col sm:flex-row justify-between items-center bg-white/80 backdrop-blur-md p-4 rounded-2xl shadow-sm border border-gray-100">
           <div className="flex items-center gap-4 mb-4 sm:mb-0">
-            <h1 className="text-2xl font-bold text-gray-800">{t('cal.title')}</h1>
-            
-            <div className="flex items-center bg-gray-50 rounded-lg p-1 border border-gray-200">
-              <button onClick={prevMonth} className="p-1.5 hover:bg-white hover:shadow-sm rounded-md transition-all text-gray-600">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">{t('cal.title')}</h1>
+              <p className="text-xs text-gray-500 mt-1">{t('cal.subtitle') || ''}</p>
+            </div>
+
+            <div className="flex items-center bg-gray-50 rounded-xl p-1 border border-gray-200 shadow-inner">
+              <button onClick={prevMonth} className="p-1.5 hover:bg-white hover:shadow-sm rounded-lg transition-all text-gray-600">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
               </button>
               <span className="px-4 font-semibold text-gray-700 min-w-[150px] text-center select-none">
                 {monthNames[month]} {year}
               </span>
-              <button onClick={nextMonth} className="p-1.5 hover:bg-white hover:shadow-sm rounded-md transition-all text-gray-600">
+              <button onClick={nextMonth} className="p-1.5 hover:bg-white hover:shadow-sm rounded-lg transition-all text-gray-600">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
               </button>
             </div>
           </div>
 
-          <div>
-            <select 
-              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 min-w-[160px]"
+          <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+            <select
+              className="bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-blue-500 focus:border-blue-500 block w-full sm:w-44 px-3 py-2.5 shadow-sm"
               value={filterDept}
               onChange={(e) => setFilterDept(e.target.value)}
             >
               <option value="ALL">{t('cal.allDepts')}</option>
-              {departments.map(d => (
+              {departments.map((d) => (
                 <option key={d} value={d}>{d}</option>
               ))}
             </select>
+
+            <button
+              onClick={() => openNewLeaveForDate()}
+              className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-500 text-white text-sm font-semibold shadow-md hover:shadow-lg hover:from-indigo-500 hover:to-indigo-400"
+            >
+              <span className="text-lg">＋</span>
+              {t('my.btnRequest')}
+            </button>
           </div>
         </div>
         
@@ -113,9 +132,9 @@ export const CalendarPage: React.FC = () => {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex-1 flex flex-col">
+      <div className="bg-white rounded-2xl shadow-soft border border-gray-200 overflow-hidden flex-1 flex flex-col">
         {/* Days Header */}
-        <div className="grid grid-cols-7 border-b border-gray-200 bg-gray-50">
+        <div className="grid grid-cols-7 border-b border-gray-200 bg-gray-50/80">
           {dayNames.map(d => (
             <div key={d} className="py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">
               {d}
@@ -124,7 +143,7 @@ export const CalendarPage: React.FC = () => {
         </div>
 
         {/* Calendar Grid */}
-        <div className="grid grid-cols-7 flex-1 bg-gray-200 gap-px border-b border-gray-200 overflow-y-auto">
+        <div className="grid grid-cols-7 flex-1 bg-gray-100 gap-px border-b border-gray-200 overflow-y-auto">
           {calendarCells.map((day, index) => {
             if (day === null) {
               return <div key={`empty-${index}`} className="bg-white min-h-[100px]"></div>;
@@ -135,16 +154,27 @@ export const CalendarPage: React.FC = () => {
             const leaves = getLeavesForDay(day);
 
             return (
-              <div key={day} className={`bg-white min-h-[100px] p-2 transition-colors hover:bg-gray-50 flex flex-col gap-1 ${isToday ? 'bg-blue-50/40' : ''}`}>
-                <div className="flex justify-between items-start">
-                  <span className={`text-sm font-medium h-7 w-7 flex items-center justify-center rounded-full ${isToday ? 'bg-blue-600 text-white shadow-sm' : 'text-gray-700'}`}>
+              <div key={day} className={`bg-white min-h-[110px] p-2 transition-colors hover:bg-gray-50 flex flex-col gap-1 group`}>
+                <div className={`flex justify-between items-start ${isToday ? 'bg-indigo-50/60 rounded-xl -m-2 mb-1 p-2 pb-1' : ''}`}>
+                  <span className={`text-sm font-semibold h-8 w-8 flex items-center justify-center rounded-full ${isToday ? 'bg-indigo-600 text-white shadow-md' : 'text-gray-700 hover:bg-gray-100'}`}>
                     {day}
                   </span>
-                  {leaves.length > 0 && (
-                    <span className="text-[10px] font-bold text-gray-400 bg-gray-100 px-1.5 rounded-full">
+                  <div className="flex items-center gap-1">
+                    {leaves.length > 0 && (
+                      <span className="text-[10px] font-semibold text-gray-500 bg-gray-100 px-1.5 rounded-full">
                       {leaves.length} {t('cal.away')}
-                    </span>
-                  )}
+                      </span>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => openNewLeaveForDate(currentDayStr)}
+                      className="opacity-0 group-hover:opacity-100 p-1 rounded-full text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 transition-all"
+                    >
+                      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M12 5v14M5 12h14" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </button>
+                  </div>
                 </div>
                 
                 <div className="flex flex-col gap-1.5 mt-1 overflow-y-auto custom-scrollbar">
@@ -170,6 +200,13 @@ export const CalendarPage: React.FC = () => {
           })}
         </div>
       </div>
+
+      <NewLeaveModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        defaultStartDate={selectedDate || undefined}
+        defaultEndDate={selectedDate || undefined}
+      />
     </div>
   );
 };
