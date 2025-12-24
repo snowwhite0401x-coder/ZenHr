@@ -93,7 +93,7 @@ export const CalendarPage: React.FC = () => {
   const todayStr = new Date().toISOString().split('T')[0];
 
   const getLeavesForDate = (dateStr: string): LeaveRequest[] => {
-    return requests.filter(r => 
+    return requests.filter(r =>
       r.status === LeaveStatus.APPROVED &&
       (filterDept === 'ALL' || r.department === filterDept) &&
       (filterType === 'ALL' || r.type === filterType) &&
@@ -108,7 +108,7 @@ export const CalendarPage: React.FC = () => {
 
   // Filtered requests for List view
   const filteredRequests = useMemo(() => {
-    return requests.filter(r => 
+    return requests.filter(r =>
       r.status === LeaveStatus.APPROVED &&
       (filterDept === 'ALL' || r.department === filterDept) &&
       (filterType === 'ALL' || r.type === filterType)
@@ -119,10 +119,10 @@ export const CalendarPage: React.FC = () => {
     });
   }, [requests, filterDept, filterType]);
 
-  const monthNames = language === 'TH' 
+  const monthNames = language === 'TH'
     ? ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"]
     : ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-  
+
   const dayNames = language === 'TH'
     ? ["อา", "จ", "อ", "พ", "พฤ", "ศ", "ส"]
     : ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -166,9 +166,9 @@ export const CalendarPage: React.FC = () => {
     const isNote = leave.type === LeaveType.NOTE;
 
     return (
-      <div 
-        key={leave.id} 
-        title={`${leave.userName} (${leave.department}) - ${t('type.'+leave.type)}${isNote ? '\nNote: ' + leave.reason : '\nReason: ' + leave.reason}`}
+      <div
+        key={leave.id}
+        title={`${leave.userName} (${leave.department}) - ${t('type.' + leave.type)}${isNote ? '\nNote: ' + leave.reason : '\nReason: ' + leave.reason}`}
         className={`
           text-xs px-2 py-1.5 rounded-md border shadow-sm cursor-pointer flex items-center gap-2
           ${style.bg} ${style.text} ${style.border}
@@ -182,7 +182,7 @@ export const CalendarPage: React.FC = () => {
             <span>{initials || '?'}</span>
           )}
         </div>
-        
+
         {isNote ? (
           <>
             <span className="text-orange-500 text-sm">⭐</span>
@@ -210,22 +210,22 @@ export const CalendarPage: React.FC = () => {
 
             <div className="flex items-center gap-2">
               <div className="flex items-center bg-gray-50 rounded-xl p-1 border border-gray-200 shadow-inner">
-                <button 
-                  onClick={viewMode === 'MONTH' ? prevMonth : prevWeek} 
+                <button
+                  onClick={viewMode === 'MONTH' ? prevMonth : prevWeek}
                   className="p-1.5 hover:bg-white hover:shadow-sm rounded-lg transition-all text-gray-600"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
                 </button>
                 <span className="px-4 font-semibold text-gray-700 min-w-[150px] text-center select-none">
-                  {viewMode === 'MONTH' 
+                  {viewMode === 'MONTH'
                     ? `${monthNames[month]} ${year}`
                     : viewMode === 'WEEK'
-                    ? `${weekDays[0].getDate()} ${monthNames[weekDays[0].getMonth()]} - ${weekDays[6].getDate()} ${monthNames[weekDays[6].getMonth()]} ${weekDays[6].getFullYear()}`
-                    : `${monthNames[month]} ${year}`
+                      ? `${weekDays[0].getDate()} ${monthNames[weekDays[0].getMonth()]} - ${weekDays[6].getDate()} ${monthNames[weekDays[6].getMonth()]} ${weekDays[6].getFullYear()}`
+                      : `${monthNames[month]} ${year}`
                   }
                 </span>
-                <button 
-                  onClick={viewMode === 'MONTH' ? nextMonth : nextWeek} 
+                <button
+                  onClick={viewMode === 'MONTH' ? nextMonth : nextWeek}
                   className="p-1.5 hover:bg-white hover:shadow-sm rounded-lg transition-all text-gray-600"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
@@ -259,11 +259,10 @@ export const CalendarPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setShowFilters(!showFilters)}
-                  className={`hidden sm:inline-flex items-center gap-1 px-3 py-2 rounded-xl border text-xs font-medium transition-colors ${
-                    showFilters || filterType !== 'ALL'
+                  className={`hidden sm:inline-flex items-center gap-1 px-3 py-2 rounded-xl border text-xs font-medium transition-colors ${showFilters || filterType !== 'ALL'
                       ? 'bg-indigo-50 border-indigo-200 text-indigo-600'
                       : 'border-gray-200 text-gray-600 hover:bg-gray-50'
-                  }`}
+                    }`}
                 >
                   <span className={`w-1.5 h-1.5 rounded-full ${filterType !== 'ALL' ? 'bg-indigo-500' : 'bg-green-500'}`} />
                   Filters
@@ -299,33 +298,32 @@ export const CalendarPage: React.FC = () => {
             </div>
           </div>
         </div>
-        
+
         {/* Legend & view mode */}
         <div className="flex flex-wrap items-center justify-between gap-3 px-1">
           <div className="flex flex-wrap gap-2">
-          {Object.values(LeaveType).map(type => {
-             const style = getLeaveColor(type);
-             return (
-               <div key={type} className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-lg border border-gray-100 shadow-sm text-xs font-medium">
+            {Object.values(LeaveType).map(type => {
+              const style = getLeaveColor(type);
+              return (
+                <div key={type} className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-lg border border-gray-100 shadow-sm text-xs font-medium">
                   <div className={`w-2.5 h-2.5 rounded-full ${style.dot}`} />
                   <span className="text-gray-600">{t(`type.${type}`)}</span>
-               </div>
-             )
-          })}
+                </div>
+              )
+            })}
           </div>
 
           <div className="flex items-center">
             <div className="inline-flex rounded-full bg-gray-100 p-1 text-xs font-medium text-gray-500">
-              {['MONTH','WEEK','LIST'].map(mode => (
+              {['MONTH', 'WEEK', 'LIST'].map(mode => (
                 <button
                   key={mode}
                   type="button"
                   onClick={() => setViewMode(mode as any)}
-                  className={`px-3 py-1 rounded-full transition-colors ${
-                    viewMode === mode
+                  className={`px-3 py-1 rounded-full transition-colors ${viewMode === mode
                       ? 'bg-white text-indigo-600 shadow-sm'
                       : 'text-gray-500 hover:text-gray-700'
-                  }`}
+                    }`}
                 >
                   {mode === 'MONTH' ? 'Month' : mode === 'WEEK' ? 'Week' : 'List'}
                 </button>
@@ -356,7 +354,7 @@ export const CalendarPage: React.FC = () => {
 
                 const currentDayStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
                 const isToday = currentDayStr === todayStr;
-                const leaves = getLeavesForDay(day);
+                const { leaves, notes } = getLeavesForDay(day);
 
                 return (
                   <div key={day} className={`bg-white min-h-[110px] p-2 transition-colors hover:bg-gray-50 flex flex-col gap-1 group`}>
@@ -383,7 +381,10 @@ export const CalendarPage: React.FC = () => {
                     </div>
                     
                     <div className="flex flex-col gap-1.5 mt-1 overflow-y-auto custom-scrollbar">
+                      {/* แสดงการลาก่อน */}
                       {leaves.map(leave => renderLeaveItem(leave))}
+                      {/* แสดงโน้ต/แจ้งเตือนทีหลัง */}
+                      {notes.map(note => renderLeaveItem(note))}
                     </div>
                   </div>
                 );
@@ -435,7 +436,7 @@ export const CalendarPage: React.FC = () => {
                         </svg>
                       </button>
                     </div>
-                    
+
                     <div className="flex flex-col gap-2 flex-1 overflow-y-auto custom-scrollbar">
                       {leaves.map(leave => renderLeaveItem(leave))}
                     </div>
