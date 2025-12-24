@@ -1,5 +1,5 @@
 import { supabase } from './supabaseClient';
-import { LeaveRequest, User, LeaveStatus } from '../types';
+import { LeaveRequest, User, LeaveStatus, RolePermissions, AppFeature } from '../types';
 
 // Helper types aligned with Supabase schema (snake_case)
 type DbUser = {
@@ -314,6 +314,66 @@ export async function deleteDepartmentByName(name: string): Promise<{ success: b
 
   if (error) {
     console.warn('[Supabase] Failed to delete department', error);
+    return { success: false, error: error.message };
+  }
+
+  return { success: true };
+}
+
+// -------- Permissions CRUD -----------------------
+
+export async function fetchPermissions(): Promise<RolePermissions | null> {
+  if (!supabase) return null;
+
+  const { data, error } = await supabase
+    .from('role_permissions')
+    .select('*');
+
+  if (error) {
+    console.warn('[Supabase] Failed to fetch permissions', error);
+    return null;
+  }
+
+  if (!data || data.length === 0) return null;
+
+  // Convert from database format to RolePermissions
+  const permissions: RolePermissions = {
+    EMPLOYEE: {
+      VIEW_DASHBOARD: false,
+      VIEW_CALENDAR: false,
+      REQUEST_LEAVE: false,
+      APPROVE_LEAVE: false,
+      MANAGE_SETTINGS: false,
+      VIEW_REPORTS: false,
+    },
+    HR_ADMIN: {
+      VIEW_DASHBOARD: false,
+      VIEW_CALENDAR: false,
+      REQUEST_LEAVE: false,
+      APPROVE_LEAVE: false,
+      MANAGE_SETTINGS: false,
+      VIEW_REPORTS: false,
+    },
+  };
+
+  (data as Array<{ role: 'EMPLOYEE' | 'HR_ADMIN'; feature: string; allowed: boolean }>).forEach((row) => {
+    if (permissions[row.role] && row.feature in permissions[row.role]) {
+      permissions[row.role][row.feature as AppFeature] = row.allowed;
+    }
+  });
+
+  return permissions;
+}
+
+export async function updatePermission(role: 'EMPLOYEE' | 'HR_ADMIN', feature: string, allowed: boolean): Promise<{ success: boolean; error?: string }> {
+  if (!supabase) return { success: false, error: 'Supabase client not initialized' };
+
+  const { error } = await supabase
+    .from('role_permissions')
+    .upsert({ role, feature, allowed }, { onConflict: 'role,feature' });
+
+  if (error) {
+    console.warn('[Supabase] Failed to update permission', error);
     return { success: false, error: error.message };
   }
 

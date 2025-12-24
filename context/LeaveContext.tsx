@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { LeaveRequest, User, LeaveStatus, LeaveType, RolePermissions, AppFeature, Department } from '../types.ts';
 import { MOCK_REQUESTS, MOCK_USERS, ANNUAL_LEAVE_LIMIT, PUBLIC_HOLIDAY_COUNT } from '../constants.ts';
 import { useLanguage } from './LanguageContext.tsx';
+import { fetchUsersAndRequests, fetchLeaveSettings, updateLeaveSettings as supabaseUpdateLeaveSettings, updateUser as supabaseUpdateUser, insertUser as supabaseInsertUser, deleteUser as supabaseDeleteUser, insertLeaveRequest as supabaseInsertLeaveRequest, updateLeaveStatus as supabaseUpdateLeaveStatus, fetchDepartments as supabaseFetchDepartments, insertDepartment as supabaseInsertDepartment, updateDepartmentName as supabaseUpdateDepartmentName, deleteDepartmentByName as supabaseDeleteDepartmentByName, fetchPermissions as supabaseFetchPermissions, updatePermission as supabaseUpdatePermission } from '../services/supabaseLeaveService';
 
 interface LeaveContextType {
   currentUser: User | null;
@@ -11,6 +12,8 @@ interface LeaveContextType {
   isAuthenticated: boolean;
   permissions: RolePermissions;
   googleSheetsUrl: string;
+  annualLeaveLimit: number;
+  publicHolidayCount: number;
   login: (username: string, pass: string) => boolean;
   logout: () => void;
   addUser: (user: User) => void;
@@ -25,6 +28,7 @@ interface LeaveContextType {
   addDepartment: (name: string) => { success: boolean; message: string };
   updateDepartment: (oldName: string, newName: string) => { success: boolean; message: string };
   deleteDepartment: (name: string) => { success: boolean; message: string };
+  updateLeaveLimits: (annual: number, publicCount: number) => void;
 }
 
 const DEFAULT_PERMISSIONS: RolePermissions = {
@@ -81,12 +85,75 @@ export const LeaveProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     return localStorage.getItem('zenhr_gsheet_url') || '';
   });
 
+  const [annualLeaveLimit, setAnnualLeaveLimit] = useState<number>(() => {
+    const saved = localStorage.getItem('zenhr_annual_limit');
+    const n = saved ? Number(saved) : NaN;
+    return Number.isFinite(n) && n > 0 ? n : ANNUAL_LEAVE_LIMIT;
+  });
+
+  const [publicHolidayCount, setPublicHolidayCount] = useState<number>(() => {
+    const saved = localStorage.getItem('zenhr_public_holiday_count');
+    const n = saved ? Number(saved) : NaN;
+    return Number.isFinite(n) && n > 0 ? n : PUBLIC_HOLIDAY_COUNT;
+  });
+
   const [currentUserId, setCurrentUserId] = useState<string | null>(() => {
     return localStorage.getItem('zenhr_current_user_id');
   });
 
   const currentUser = currentUserId ? users.find(u => u.id === currentUserId) || null : null;
   const isAuthenticated = !!currentUser;
+
+  // Initial load: try Supabase first, then fall back to localStorage/mocks
+  useEffect(() => {
+    (async () => {
+      const fromSupabase = await fetchUsersAndRequests();
+      if (fromSupabase && (fromSupabase.users.length > 0 || fromSupabase.requests.length > 0)) {
+        setUsers(fromSupabase.users);
+        setRequests(fromSupabase.requests);
+      } else {
+        const savedUsers = localStorage.getItem('zenhr_users');
+        setUsers(savedUsers ? JSON.parse(savedUsers) : MOCK_USERS);
+
+        const savedReqs = localStorage.getItem('zenhr_requests');
+        setRequests(savedReqs ? JSON.parse(savedReqs) : MOCK_REQUESTS);
+      }
+
+      // fetch departments from Supabase if available
+      const deptsFromSupabase = await supabaseFetchDepartments();
+      if (deptsFromSupabase.length > 0) {
+        setDepartments(deptsFromSupabase);
+      } else {
+        const saved = localStorage.getItem('zenhr_departments');
+        if (saved) {
+          setDepartments(JSON.parse(saved));
+        }
+      }
+
+      // fetch permissions from Supabase if available
+      const permsFromSupabase = await supabaseFetchPermissions();
+      if (permsFromSupabase) {
+        setPermissions(permsFromSupabase);
+      } else {
+        const saved = localStorage.getItem('zenhr_permissions');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (parsed.EMPLOYEE && parsed.EMPLOYEE.VIEW_REPORTS === undefined) {
+            setPermissions(DEFAULT_PERMISSIONS);
+          } else {
+            setPermissions(parsed);
+          }
+        }
+      }
+
+      // fetch global leave quotas from Supabase if available
+      const settings = await fetchLeaveSettings();
+      if (settings) {
+        setAnnualLeaveLimit(settings.annualLeaveLimit);
+        setPublicHolidayCount(settings.publicHolidayCount);
+      }
+    })();
+  }, []);
 
   useEffect(() => {
     localStorage.setItem('zenhr_users', JSON.stringify(users));
@@ -116,6 +183,14 @@ export const LeaveProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     localStorage.setItem('zenhr_gsheet_url', googleSheetsUrl);
   }, [googleSheetsUrl]);
 
+  useEffect(() => {
+    localStorage.setItem('zenhr_annual_limit', String(annualLeaveLimit));
+  }, [annualLeaveLimit]);
+
+  useEffect(() => {
+    localStorage.setItem('zenhr_public_holiday_count', String(publicHolidayCount));
+  }, [publicHolidayCount]);
+
   const login = (username: string, pass: string): boolean => {
     const user = users.find(u => u.username === username && u.password === pass);
     if (user) {
@@ -130,14 +205,44 @@ export const LeaveProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   };
 
   const addUser = (user: User) => {
-    setUsers(prev => [...prev, user]);
+    // บันทึกลง Supabase (ส่งข้อมูลโดยไม่รวม id เพราะ Supabase จะสร้างให้)
+    const { id, ...userWithoutId } = user;
+    supabaseInsertUser(userWithoutId).then((result) => {
+      if (result.success && result.id) {
+        // ใช้ id ที่ Supabase สร้างให้
+        setUsers(prev => {
+          const existing = prev.find(u => u.id === id);
+          if (existing) {
+            return prev.map(u => u.id === id ? { ...u, id: result.id! } : u);
+          }
+          return [...prev, { ...user, id: result.id! }];
+        });
+      } else {
+        // ถ้า Supabase ไม่ได้ตั้งค่า หรือ error ให้ใช้ id เดิม
+        setUsers(prev => [...prev, user]);
+        if (result.error) {
+          console.warn('[Supabase] Failed to insert user, using local state only', result.error);
+        }
+      }
+    }).catch((err) => {
+      console.warn('[Supabase] Failed to insert user', err);
+      setUsers(prev => [...prev, user]);
+    });
   };
 
   const updateUser = (id: string, updatedData: Partial<User>) => {
     setUsers(prev => prev.map(u => u.id === id ? { ...u, ...updatedData } : u));
+    // บันทึกลง Supabase
+    supabaseUpdateUser(id, updatedData).catch((err) =>
+      console.warn('[Supabase] Failed to update user', err),
+    );
   };
 
   const deleteUser = (id: string) => {
+    // ลบจาก Supabase
+    supabaseDeleteUser(id).catch((err) =>
+      console.warn('[Supabase] Failed to delete user', err),
+    );
     setUsers(prev => prev.filter(u => u.id !== id));
   };
 
@@ -145,6 +250,18 @@ export const LeaveProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     if (departments.includes(name)) {
       return { success: false, message: t('msg.deptExists') };
     }
+    
+    // บันทึกลง Supabase
+    supabaseInsertDepartment(name).then((result) => {
+      if (result.success) {
+        setDepartments(prev => [...prev, name]);
+      } else {
+        console.warn('[Supabase] Failed to insert department', result.error);
+      }
+    }).catch((err) => {
+      console.warn('[Supabase] Failed to insert department', err);
+    });
+
     setDepartments(prev => [...prev, name]);
     return { success: true, message: t('msg.deptAdded') };
   };
@@ -153,6 +270,19 @@ export const LeaveProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     if (oldName === newName) return { success: true, message: t('msg.noChange') };
     if (departments.includes(newName)) return { success: false, message: t('msg.deptNameExists') };
     
+    // อัปเดตใน Supabase
+    supabaseUpdateDepartmentName(oldName, newName).then((result) => {
+      if (result.success) {
+        setDepartments(prev => prev.map(d => d === oldName ? newName : d));
+        setUsers(prev => prev.map(u => u.department === oldName ? { ...u, department: newName } : u));
+        setRequests(prev => prev.map(r => r.department === oldName ? { ...r, department: newName } : r));
+      } else {
+        console.warn('[Supabase] Failed to update department', result.error);
+      }
+    }).catch((err) => {
+      console.warn('[Supabase] Failed to update department', err);
+    });
+
     setDepartments(prev => prev.map(d => d === oldName ? newName : d));
     setUsers(prev => prev.map(u => u.department === oldName ? { ...u, department: newName } : u));
     setRequests(prev => prev.map(r => r.department === oldName ? { ...r, department: newName } : r));
@@ -165,6 +295,18 @@ export const LeaveProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     if (userCount > 0) {
       return { success: false, message: t('msg.deptInUse', { count: userCount }) };
     }
+
+    // ลบจาก Supabase
+    supabaseDeleteDepartmentByName(name).then((result) => {
+      if (result.success) {
+        setDepartments(prev => prev.filter(d => d !== name));
+      } else {
+        console.warn('[Supabase] Failed to delete department', result.error);
+      }
+    }).catch((err) => {
+      console.warn('[Supabase] Failed to delete department', err);
+    });
+
     setDepartments(prev => prev.filter(d => d !== name));
     return { success: true, message: t('msg.deptDeleted') };
   };
@@ -177,6 +319,19 @@ export const LeaveProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         [feature]: value
       }
     }));
+    // บันทึกลง Supabase
+    supabaseUpdatePermission(role, feature, value).catch((err) =>
+      console.warn('[Supabase] Failed to update permission', err),
+    );
+  };
+
+  const updateLeaveLimits = (annual: number, publicCount: number) => {
+    setAnnualLeaveLimit(annual);
+    setPublicHolidayCount(publicCount);
+    // persist to Supabase (shared for all users)
+    supabaseUpdateLeaveSettings(annual, publicCount).catch((err) =>
+      console.warn('[Supabase] Failed to update leave_settings', err),
+    );
   };
 
   const saveGoogleSheetsUrl = (url: string) => {
@@ -274,20 +429,22 @@ export const LeaveProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
     if (data.type === LeaveType.ANNUAL) {
       const usedInRequestedYear = calculateUsedInYear(LeaveType.ANNUAL);
-      if (usedInRequestedYear + data.daysCount > ANNUAL_LEAVE_LIMIT) {
-        return { success: false, message: t('err.annualLimit', { days: Math.max(0, ANNUAL_LEAVE_LIMIT - usedInRequestedYear) }) };
+      if (usedInRequestedYear + data.daysCount > annualLeaveLimit) {
+        return { success: false, message: t('err.annualLimit', { days: Math.max(0, annualLeaveLimit - usedInRequestedYear) }) };
       }
     }
 
     if (data.type === LeaveType.PUBLIC_HOLIDAY) {
       const usedInRequestedYear = calculateUsedInYear(LeaveType.PUBLIC_HOLIDAY);
-      if (usedInRequestedYear + data.daysCount > PUBLIC_HOLIDAY_COUNT) {
-        return { success: false, message: t('err.publicLimit', { days: Math.max(0, PUBLIC_HOLIDAY_COUNT - usedInRequestedYear) }) };
+      if (usedInRequestedYear + data.daysCount > publicHolidayCount) {
+        return { success: false, message: t('err.publicLimit', { days: Math.max(0, publicHolidayCount - usedInRequestedYear) }) };
       }
     }
 
     const newRequest: LeaveRequest = {
-      id: Math.random().toString(36).substr(2, 9),
+      id: typeof crypto !== 'undefined' && 'randomUUID' in crypto
+        ? crypto.randomUUID()
+        : Math.random().toString(36).substr(2, 9),
       userId: currentUser.id,
       userName: currentUser.name,
       department: currentUser.department,
@@ -297,6 +454,11 @@ export const LeaveProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     };
 
     setRequests(prev => [newRequest, ...prev]);
+
+    // บันทึกลง Supabase
+    supabaseInsertLeaveRequest(newRequest).catch((err) =>
+      console.warn('[Supabase] Failed to insert leave_request from addRequest', err),
+    );
 
     if (requestYear === currentYear) {
         if (data.type === LeaveType.ANNUAL) {
@@ -329,6 +491,11 @@ export const LeaveProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
     setRequests(prev => prev.map(req => req.id === id ? { ...req, status } : req));
     
+    // บันทึกลง Supabase
+    supabaseUpdateLeaveStatus(id, status).catch((err) =>
+      console.warn('[Supabase] Failed to update leave status', err),
+    );
+    
     if (status === LeaveStatus.REJECTED) {
         const req = requests.find(r => r.id === id);
         if (req) {
@@ -354,7 +521,7 @@ export const LeaveProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   };
 
   return (
-    <LeaveContext.Provider value={{ currentUser, users, requests, departments, isAuthenticated, permissions, googleSheetsUrl, login, logout, addUser, updateUser, deleteUser, addRequest, updateRequestStatus, updatePermission, saveGoogleSheetsUrl, testGoogleSheetsConnection, sendHeadersToSheet, addDepartment, updateDepartment, deleteDepartment }}>
+    <LeaveContext.Provider value={{ currentUser, users, requests, departments, isAuthenticated, permissions, googleSheetsUrl, annualLeaveLimit, publicHolidayCount, login, logout, addUser, updateUser, deleteUser, addRequest, updateRequestStatus, updatePermission, saveGoogleSheetsUrl, testGoogleSheetsConnection, sendHeadersToSheet, addDepartment, updateDepartment, deleteDepartment, updateLeaveLimits }}>
       {children}
     </LeaveContext.Provider>
   );
