@@ -61,19 +61,20 @@ export const NewLeaveModal: React.FC<Props> = ({ isOpen, onClose, defaultStartDa
     return count;
   };
 
-  const daysCount = calculateDays(formData.startDate, formData.endDate, formData.type);
-  
   // สำหรับ NOTE type ให้ startDate และ endDate เป็นวันเดียวกัน
   useEffect(() => {
     if (formData.type === LeaveType.NOTE && formData.startDate && formData.endDate !== formData.startDate) {
       setFormData(prev => ({ ...prev, endDate: formData.startDate }));
     }
-  }, [formData.type, formData.startDate]);
+  }, [formData.type, formData.startDate, formData.endDate]);
+
+  const daysCount = calculateDays(formData.startDate, formData.endDate, formData.type);
 
   // Calculate remaining balance dynamically based on selected Start Date's Year
   const selectedYear = formData.startDate ? new Date(formData.startDate).getFullYear() : new Date().getFullYear();
 
   const getUsedInYear = (type: LeaveType) => {
+    if (!currentUser) return 0;
     return requests
       .filter(r =>
         r.userId === currentUser.id &&
