@@ -35,26 +35,26 @@ export const NewLeaveModal: React.FC<Props> = ({ isOpen, onClose, defaultStartDa
 
   if (!isOpen) return null;
 
-  // คำนวณจำนวนวันทำงาน (ไม่รวมเสาร์-อาทิตย์)
+  // คำนวณจำนวนวันลา (ไม่นับวันอาทิตย์)
   const calculateDays = (start: string, end: string) => {
     if (!start || !end) return 0;
     const s = new Date(start + 'T00:00:00'); // ใช้เวลาเที่ยงคืนเพื่อหลีกเลี่ยงปัญหา timezone
     const e = new Date(end + 'T00:00:00');
-
+    
     let count = 0;
     const current = new Date(s);
-
+    
     // วนลูปจากวันเริ่มต้นถึงวันสิ้นสุด
     while (current <= e) {
-      const dayOfWeek = current.getDay(); // 0 = อาทิตย์, 6 = เสาร์
-      // นับเฉพาะวันจันทร์-ศุกร์ (1-5)
-      if (dayOfWeek >= 1 && dayOfWeek <= 5) {
+      const dayOfWeek = current.getDay(); // 0 = อาทิตย์, 1 = จันทร์, ..., 6 = เสาร์
+      // ไม่นับเฉพาะวันอาทิตย์ (0) เท่านั้น
+      if (dayOfWeek !== 0) {
         count++;
       }
       // เพิ่ม 1 วัน
       current.setDate(current.getDate() + 1);
     }
-
+    
     return count;
   };
 
