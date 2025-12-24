@@ -531,6 +531,29 @@ export const Reports: React.FC = () => {
                       </div>
                     </div>
                   </div>
+
+                  {/* Public Holiday Card */}
+                  <div className="bg-white rounded-3xl p-6 shadow-soft relative overflow-hidden group hover:-translate-y-1 transition-transform duration-300">
+                    <div className="absolute -right-4 -top-4 w-24 h-24 bg-purple-100 rounded-full opacity-50 transition-transform group-hover:scale-110"></div>
+                    <div className="relative z-10">
+                      <div className="flex items-center gap-2 text-purple-600 mb-3">
+                        <span className="p-2 bg-purple-50 rounded-lg material-symbols-outlined text-[20px]">celebration</span>
+                        <span className="font-medium text-sm">วันหยุดนักขัตฤกษ์</span>
+                      </div>
+                      <div className="mt-4">
+                        <div className="text-3xl font-bold text-slate-800">
+                          {individualStats.publicHoliday.remaining} <span className="text-sm font-normal text-slate-400">/ {individualStats.publicHoliday.limit}</span>
+                        </div>
+                        <p className="text-xs text-slate-400 mt-1">ปี {individualFilterYear}</p>
+                      </div>
+                      <div className="mt-4 pt-4 border-t border-slate-100 flex justify-between items-center">
+                        <span className="text-xs text-slate-500">ใช้ไป {individualStats.publicHoliday.used} วัน</span>
+                        <div className="w-16 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                          <div className="h-full bg-purple-500" style={{ width: `${Math.min(100, (individualStats.publicHoliday.used / individualStats.publicHoliday.limit) * 100)}%` }}></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
                 {/* History */}
