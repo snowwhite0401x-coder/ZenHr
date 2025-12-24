@@ -40,10 +40,10 @@ export const NewLeaveModal: React.FC<Props> = ({ isOpen, onClose, defaultStartDa
     if (!start || !end) return 0;
     const s = new Date(start + 'T00:00:00'); // ใช้เวลาเที่ยงคืนเพื่อหลีกเลี่ยงปัญหา timezone
     const e = new Date(end + 'T00:00:00');
-    
+
     let count = 0;
     const current = new Date(s);
-    
+
     // วนลูปจากวันเริ่มต้นถึงวันสิ้นสุด
     while (current <= e) {
       const dayOfWeek = current.getDay(); // 0 = อาทิตย์, 6 = เสาร์
@@ -54,7 +54,7 @@ export const NewLeaveModal: React.FC<Props> = ({ isOpen, onClose, defaultStartDa
       // เพิ่ม 1 วัน
       current.setDate(current.getDate() + 1);
     }
-    
+
     return count;
   };
 
