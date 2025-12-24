@@ -65,7 +65,7 @@ export const Settings: React.FC = () => {
     setShowUserModal(true);
   };
 
-  const handleUserSubmit = (e: React.FormEvent) => {
+  const handleUserSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (editMode && editingId) {
       updateUser(editingId, {
@@ -92,7 +92,7 @@ export const Settings: React.FC = () => {
         publicHolidayUsed: 0,
         avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(formData.name)}&background=random`
       };
-      addUser(user);
+      await addUser(user);
     }
     setShowUserModal(false);
   };
@@ -265,7 +265,7 @@ export const Settings: React.FC = () => {
                         </button>
                         {u.id !== currentUser.id && (
                           <button
-                            onClick={() => { if (window.confirm(t('set.user.confirmDelete'))) deleteUser(u.id) }}
+                            onClick={async () => { if (window.confirm(t('set.user.confirmDelete'))) await deleteUser(u.id) }}
                             className="text-red-500 hover:text-red-700 font-medium"
                           >
                             {t('set.user.del')}
