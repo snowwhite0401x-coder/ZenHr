@@ -352,7 +352,7 @@ export const Settings: React.FC = () => {
                       <input
                         type="checkbox"
                         checked={permissions.EMPLOYEE[row.key] || false}
-                        onChange={(e) => updatePermission('EMPLOYEE', row.key, e.target.checked)}
+                        onChange={async (e) => await updatePermission('EMPLOYEE', row.key, e.target.checked)}
                         className="w-5 h-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500 cursor-pointer"
                       />
                     </td>
@@ -361,7 +361,7 @@ export const Settings: React.FC = () => {
                       <input
                         type="checkbox"
                         checked={permissions.HR_ADMIN[row.key] || false}
-                        onChange={(e) => updatePermission('HR_ADMIN', row.key, e.target.checked)}
+                        onChange={async (e) => await updatePermission('HR_ADMIN', row.key, e.target.checked)}
                         className="w-5 h-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500 cursor-pointer"
                       />
                     </td>
