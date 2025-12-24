@@ -32,9 +32,12 @@ export const NewLeaveModal: React.FC<Props> = ({ isOpen, onClose, defaultStartDa
       });
     }
   }, [isOpen, defaultStartDate, defaultEndDate]);
-
-  if (!isOpen) return null;
-  if (!currentUser) return null; // ป้องกัน error เมื่อ currentUser เป็น null
+  // สำหรับ NOTE type ให้ startDate และ endDate เป็นวันเดียวกัน
+  useEffect(() => {
+    if (formData.type === LeaveType.NOTE && formData.startDate && formData.endDate !== formData.startDate) {
+      setFormData(prev => ({ ...prev, endDate: formData.startDate }));
+    }
+  }, [formData.type, formData.startDate, formData.endDate]);
 
   // คำนวณจำนวนวันลา (ไม่นับวันอาทิตย์)
   // สำหรับ NOTE type ไม่ต้องคำนวณวันลา (ใช้ 0 วัน)
@@ -62,13 +65,6 @@ export const NewLeaveModal: React.FC<Props> = ({ isOpen, onClose, defaultStartDa
     return count;
   };
 
-  // สำหรับ NOTE type ให้ startDate และ endDate เป็นวันเดียวกัน
-  useEffect(() => {
-    if (formData.type === LeaveType.NOTE && formData.startDate && formData.endDate !== formData.startDate) {
-      setFormData(prev => ({ ...prev, endDate: formData.startDate }));
-    }
-  }, [formData.type, formData.startDate, formData.endDate]);
-
   const daysCount = calculateDays(formData.startDate, formData.endDate, formData.type);
 
   // Calculate remaining balance dynamically based on selected Start Date's Year
@@ -88,6 +84,9 @@ export const NewLeaveModal: React.FC<Props> = ({ isOpen, onClose, defaultStartDa
 
   const usedAnnual = getUsedInYear(LeaveType.ANNUAL);
   const usedPublic = getUsedInYear(LeaveType.PUBLIC_HOLIDAY);
+
+  if (!isOpen) return null;
+  if (!currentUser) return null; // ป้องกัน error เมื่อ currentUser เป็น null
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
