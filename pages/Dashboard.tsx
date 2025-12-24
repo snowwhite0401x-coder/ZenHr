@@ -208,18 +208,37 @@ export const Dashboard: React.FC = () => {
           <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100">
              <h3 className="text-sm font-bold text-slate-800 mb-6 uppercase tracking-widest">{t('dash.recent')}</h3>
              <div className="space-y-6">
-               {periodRequests.slice(0, 5).map(req => (
-                 <div key={req.id} className="flex items-center justify-between group cursor-default">
-                    <div className="flex items-center gap-3">
-                       <div className={`w-2.5 h-2.5 rounded-full shadow-sm ${req.status === 'Approved' ? 'bg-emerald-500' : req.status === 'Pending' ? 'bg-amber-500' : 'bg-rose-500'}`}></div>
-                       <div>
-                          <p className="text-sm font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">{req.userName}</p>
-                          <p className="text-[10px] text-slate-400 font-bold uppercase">{t(`type.${req.type}`)}</p>
-                       </div>
-                    </div>
-                    <span className="text-[10px] font-black text-slate-300">{req.startDate.split('-').slice(1).reverse().join('/')}</span>
-                 </div>
-               ))}
+               {periodRequests.slice(0, 5).map(req => {
+                 const user = users.find(u => u.id === req.userId);
+                 const initials = (user?.name || req.userName || '')
+                   .split(' ')
+                   .filter(Boolean)
+                   .map(part => part[0])
+                   .join('')
+                   .slice(0, 2)
+                   .toUpperCase();
+                 return (
+                   <div key={req.id} className="flex items-center justify-between group cursor-default">
+                      <div className="flex items-center gap-3">
+                         <div className="relative">
+                           <div className={`w-2.5 h-2.5 rounded-full shadow-sm absolute -top-1 -right-1 z-10 ${req.status === 'Approved' ? 'bg-emerald-500' : req.status === 'Pending' ? 'bg-amber-500' : 'bg-rose-500'}`}></div>
+                           <div className="w-10 h-10 rounded-full overflow-hidden bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center text-slate-600 font-bold shadow-sm ring-2 ring-white">
+                             {user?.avatar ? (
+                               <img src={user.avatar} alt={req.userName} className="w-full h-full object-cover" />
+                             ) : (
+                               <span className="text-xs">{initials || '?'}</span>
+                             )}
+                           </div>
+                         </div>
+                         <div>
+                            <p className="text-sm font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">{req.userName}</p>
+                            <p className="text-[10px] text-slate-400 font-bold uppercase">{t(`type.${req.type}`)}</p>
+                         </div>
+                      </div>
+                      <span className="text-[10px] font-black text-slate-300">{req.startDate.split('-').slice(1).reverse().join('/')}</span>
+                   </div>
+                 );
+               })}
                {periodRequests.length === 0 && <p className="text-center py-4 text-slate-400 italic text-sm">{t('dash.noActivity')}</p>}
              </div>
           </div>
