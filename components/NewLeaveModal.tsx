@@ -36,14 +36,17 @@ export const NewLeaveModal: React.FC<Props> = ({ isOpen, onClose, defaultStartDa
   if (!isOpen) return null;
 
   // คำนวณจำนวนวันลา (ไม่นับวันอาทิตย์)
-  const calculateDays = (start: string, end: string) => {
+  // สำหรับ NOTE type ไม่ต้องคำนวณวันลา (ใช้ 0 วัน)
+  const calculateDays = (start: string, end: string, type: LeaveType) => {
+    if (type === LeaveType.NOTE) return 0; // โน้ตไม่นับเป็นวันลา
+    
     if (!start || !end) return 0;
     const s = new Date(start + 'T00:00:00'); // ใช้เวลาเที่ยงคืนเพื่อหลีกเลี่ยงปัญหา timezone
     const e = new Date(end + 'T00:00:00');
-    
+
     let count = 0;
     const current = new Date(s);
-    
+
     // วนลูปจากวันเริ่มต้นถึงวันสิ้นสุด
     while (current <= e) {
       const dayOfWeek = current.getDay(); // 0 = อาทิตย์, 1 = จันทร์, ..., 6 = เสาร์
@@ -54,11 +57,18 @@ export const NewLeaveModal: React.FC<Props> = ({ isOpen, onClose, defaultStartDa
       // เพิ่ม 1 วัน
       current.setDate(current.getDate() + 1);
     }
-    
+
     return count;
   };
 
-  const daysCount = calculateDays(formData.startDate, formData.endDate);
+  const daysCount = calculateDays(formData.startDate, formData.endDate, formData.type);
+  
+  // สำหรับ NOTE type ให้ startDate และ endDate เป็นวันเดียวกัน
+  useEffect(() => {
+    if (formData.type === LeaveType.NOTE && formData.startDate && formData.endDate !== formData.startDate) {
+      setFormData(prev => ({ ...prev, endDate: formData.startDate }));
+    }
+  }, [formData.type, formData.startDate]);
 
   // Calculate remaining balance dynamically based on selected Start Date's Year
   const selectedYear = formData.startDate ? new Date(formData.startDate).getFullYear() : new Date().getFullYear();
@@ -80,13 +90,20 @@ export const NewLeaveModal: React.FC<Props> = ({ isOpen, onClose, defaultStartDa
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    if (!formData.startDate || !formData.endDate) {
+    if (!formData.startDate) {
       setError(t('modal.err.dates'));
       return;
     }
-    if (new Date(formData.endDate) < new Date(formData.startDate)) {
-      setError(t('modal.err.endBeforeStart'));
-      return;
+    // สำหรับ NOTE type ไม่ต้องตรวจสอบ endDate
+    if (formData.type !== LeaveType.NOTE) {
+      if (!formData.endDate) {
+        setError(t('modal.err.dates'));
+        return;
+      }
+      if (new Date(formData.endDate) < new Date(formData.startDate)) {
+        setError(t('modal.err.endBeforeStart'));
+        return;
+      }
     }
 
     setLoading(true);
@@ -95,7 +112,7 @@ export const NewLeaveModal: React.FC<Props> = ({ isOpen, onClose, defaultStartDa
       const result = await addRequest({
         type: formData.type,
         startDate: formData.startDate,
-        endDate: formData.endDate,
+        endDate: formData.type === LeaveType.NOTE ? formData.startDate : formData.endDate, // สำหรับ NOTE ให้ endDate = startDate
         daysCount: daysCount,
         reason: formData.reason
       });
@@ -146,11 +163,18 @@ export const NewLeaveModal: React.FC<Props> = ({ isOpen, onClose, defaultStartDa
                 {selectedYear} {t('modal.balance')}: {Math.max(0, publicHolidayCount - usedPublic)} / {publicHolidayCount} {t('modal.remaining')}
               </p>
             )}
+            {formData.type === LeaveType.NOTE && (
+              <p className="text-xs text-blue-500 mt-1">
+                {t('modal.noteHint')}
+              </p>
+            )}
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className={formData.type === LeaveType.NOTE ? "grid grid-cols-1 gap-4" : "grid grid-cols-2 gap-4"}>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">{t('modal.startDate')}</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {formData.type === LeaveType.NOTE ? t('modal.noteDate') : t('modal.startDate')}
+              </label>
               <input
                 type="date"
                 required
@@ -159,32 +183,37 @@ export const NewLeaveModal: React.FC<Props> = ({ isOpen, onClose, defaultStartDa
                 className="w-full border-gray-300 rounded-lg shadow-sm border p-2 focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">{t('modal.endDate')}</label>
-              <input
-                type="date"
-                required
-                value={formData.endDate}
-                onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
-                className="w-full border-gray-300 rounded-lg shadow-sm border p-2 focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
+            {formData.type !== LeaveType.NOTE && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('modal.endDate')}</label>
+                <input
+                  type="date"
+                  required
+                  value={formData.endDate}
+                  onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+                  className="w-full border-gray-300 rounded-lg shadow-sm border p-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+            )}
           </div>
 
-          {daysCount > 0 && (
+          {daysCount > 0 && formData.type !== LeaveType.NOTE && (
             <div className="text-right text-sm text-gray-600 font-medium">
               {t('modal.duration')}: {daysCount} {daysCount > 1 ? t('modal.days') : t('modal.day')}
             </div>
           )}
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">{t('modal.reason')}</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              {formData.type === LeaveType.NOTE ? t('modal.noteMessage') : t('modal.reason')}
+            </label>
             <textarea
               value={formData.reason}
               onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
               className="w-full border-gray-300 rounded-lg shadow-sm border p-2 focus:ring-blue-500 focus:border-blue-500"
-              rows={3}
-              placeholder={t('modal.placeholder')}
+              rows={formData.type === LeaveType.NOTE ? 4 : 3}
+              placeholder={formData.type === LeaveType.NOTE ? t('modal.notePlaceholder') : t('modal.placeholder')}
+              required
             />
           </div>
 

@@ -423,6 +423,12 @@ export const LeaveProvider: React.FC<{ children: ReactNode }> = ({ children }) =
             .reduce((sum, r) => sum + r.daysCount, 0);
     };
 
+    // NOTE type ไม่ต้องตรวจสอบ limit และไม่นับเป็นวันลา
+    if (data.type === LeaveType.NOTE) {
+      // สำหรับ NOTE ให้ daysCount เป็น 0 เสมอ
+      data.daysCount = 0;
+    }
+
     if (data.type === LeaveType.ANNUAL) {
       const usedInRequestedYear = calculateUsedInYear(LeaveType.ANNUAL);
       if (usedInRequestedYear + data.daysCount > annualLeaveLimit) {

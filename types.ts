@@ -9,7 +9,8 @@ export enum LeaveType {
   ANNUAL = 'Annual Leave', // Limited to 2 days/year
   SICK = 'Sick Leave', // Unlimited
   PERSONAL = 'Personal Leave', // Unlimited (Business)
-  PUBLIC_HOLIDAY = 'Public Holiday' // 13 days
+  PUBLIC_HOLIDAY = 'Public Holiday', // 13 days
+  NOTE = 'Note / Activity Notification' // Note/Activity - not counted as leave
 }
 
 export enum LeaveStatus {

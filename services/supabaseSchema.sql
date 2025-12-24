@@ -9,7 +9,8 @@ create type public.leave_type as enum (
   'Annual Leave',
   'Sick Leave',
   'Personal Leave',
-  'Public Holiday'
+  'Public Holiday',
+  'Note / Activity Notification'
 );
 
 create type public.leave_status as enum ('Pending', 'Approved', 'Rejected');
