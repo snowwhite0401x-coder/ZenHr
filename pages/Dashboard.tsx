@@ -140,22 +140,36 @@ export const Dashboard: React.FC = () => {
             </div>
             {onLeaveList.length > 0 ? (
               <div className="divide-y divide-slate-50 max-h-80 overflow-y-auto custom-scrollbar">
-                {onLeaveList.map(req => (
-                  <div key={req.id} className="px-8 py-5 flex items-center justify-between hover:bg-slate-50 transition-colors">
-                    <div className="flex items-center gap-4">
-                       <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center text-slate-600 font-bold shadow-inner">
-                          {req.userName.charAt(0)}
-                       </div>
-                       <div>
-                          <p className="text-sm font-bold text-slate-900">{req.userName}</p>
-                          <p className="text-xs text-slate-500 font-medium">{req.department} • <span className="text-indigo-500">{t('type.' + req.type)}</span></p>
-                       </div>
+                {onLeaveList.map(req => {
+                  const user = users.find(u => u.id === req.userId);
+                  const initials = (user?.name || req.userName || '')
+                    .split(' ')
+                    .filter(Boolean)
+                    .map(part => part[0])
+                    .join('')
+                    .slice(0, 2)
+                    .toUpperCase();
+                  return (
+                    <div key={req.id} className="px-8 py-5 flex items-center justify-between hover:bg-slate-50 transition-colors">
+                      <div className="flex items-center gap-4">
+                         <div className="w-12 h-12 rounded-2xl overflow-hidden bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center text-slate-600 font-bold shadow-sm ring-2 ring-white">
+                           {user?.avatar ? (
+                             <img src={user.avatar} alt={req.userName} className="w-full h-full object-cover" />
+                           ) : (
+                             <span className="text-sm">{initials || req.userName.charAt(0)}</span>
+                           )}
+                         </div>
+                         <div>
+                            <p className="text-sm font-bold text-slate-900">{req.userName}</p>
+                            <p className="text-xs text-slate-500 font-medium">{req.department} • <span className="text-indigo-500">{t('type.' + req.type)}</span></p>
+                         </div>
+                      </div>
+                      <div className="text-right">
+                          <span className="text-[10px] font-bold text-slate-400 bg-slate-100 px-3 py-1 rounded-full uppercase tracking-tighter">{req.endDate}</span>
+                      </div>
                     </div>
-                    <div className="text-right">
-                        <span className="text-[10px] font-bold text-slate-400 bg-slate-100 px-3 py-1 rounded-full uppercase tracking-tighter">{req.endDate}</span>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             ) : (
               <div className="p-16 text-center">
