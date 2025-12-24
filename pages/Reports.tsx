@@ -219,7 +219,8 @@ export const Reports: React.FC = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto flex flex-col gap-10 p-6 md:p-10">
+    <div className="bg-background-light dark:bg-background-dark text-slate-800 dark:text-slate-200 transition-colors duration-300 min-h-screen p-6 md:p-10">
+      <div className="max-w-7xl mx-auto flex flex-col gap-10">
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-end md:items-center gap-4 border-b border-slate-200 pb-6">
         <div>
@@ -231,22 +232,20 @@ export const Reports: React.FC = () => {
         <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-2xl">
           <button
             onClick={() => setActiveTab('GENERAL')}
-            className={`px-6 py-2.5 rounded-xl font-medium transition-all text-sm flex items-center gap-2 ${
-              activeTab === 'GENERAL'
+            className={`px-6 py-2.5 rounded-xl font-medium transition-all text-sm flex items-center gap-2 ${activeTab === 'GENERAL'
                 ? 'bg-white dark:bg-slate-700 shadow-sm text-blue-600 dark:text-blue-400'
                 : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
-            }`}
+              }`}
           >
             <span className="material-symbols-outlined text-[18px]">grid_view</span>
             ภาพรวม
           </button>
           <button
             onClick={() => setActiveTab('INDIVIDUAL')}
-            className={`px-6 py-2.5 rounded-xl font-medium transition-all text-sm flex items-center gap-2 ${
-              activeTab === 'INDIVIDUAL'
+            className={`px-6 py-2.5 rounded-xl font-medium transition-all text-sm flex items-center gap-2 ${activeTab === 'INDIVIDUAL'
                 ? 'bg-white dark:bg-slate-700 shadow-sm text-blue-600 dark:text-blue-400'
                 : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
-            }`}
+              }`}
           >
             <span className="material-symbols-outlined text-[18px]">person</span>
             รายบุคคล
@@ -556,8 +555,8 @@ export const Reports: React.FC = () => {
                             <div className={`w-10 h-10 rounded-full ${typeColor.bg} ${typeColor.text} flex items-center justify-center`}>
                               <span className="material-symbols-outlined text-[20px]">
                                 {req.type === LeaveType.ANNUAL ? 'beach_access' :
-                                 req.type === LeaveType.SICK ? 'medical_services' :
-                                 req.type === LeaveType.PERSONAL ? 'person' : 'event'}
+                                  req.type === LeaveType.SICK ? 'medical_services' :
+                                    req.type === LeaveType.PERSONAL ? 'person' : 'event'}
                               </span>
                             </div>
                             <div>
@@ -589,6 +588,7 @@ export const Reports: React.FC = () => {
           )}
         </div>
       )}
+      </div>
     </div>
   );
 };
