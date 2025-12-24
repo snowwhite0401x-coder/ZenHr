@@ -168,28 +168,31 @@ export const CalendarPage: React.FC = () => {
     return (
       <div 
         key={leave.id} 
-        title={`${leave.userName} (${leave.department}) - ${t('type.'+leave.type)}${isNote ? '' : '\nReason: ' + leave.reason}`}
+        title={`${leave.userName} (${leave.department}) - ${t('type.'+leave.type)}${isNote ? '\nNote: ' + leave.reason : '\nReason: ' + leave.reason}`}
         className={`
           text-xs px-2 py-1.5 rounded-md border shadow-sm cursor-pointer flex items-center gap-2
           ${style.bg} ${style.text} ${style.border}
         `}
       >
+        {/* แสดงรูปโปรไฟล์สำหรับทุกประเภท รวมถึง NOTE */}
+        <div className="w-6 h-6 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center text-[10px] font-bold text-white shrink-0 ring-2 ring-white">
+          {user?.avatar ? (
+            <img src={user.avatar} alt={leave.userName} className="w-full h-full object-cover" />
+          ) : (
+            <span>{initials || '?'}</span>
+          )}
+        </div>
+        
         {isNote ? (
           <>
-            <span className="text-orange-500">⭐</span>
-            <span className="font-semibold truncate flex-1">{leave.reason || t('type.Note / Activity Notification')}</span>
+            <span className="text-orange-500 text-sm">⭐</span>
+            <div className="flex-1 min-w-0">
+              <div className="font-semibold text-slate-900 truncate">{leave.userName.split(' ')[0]}</div>
+              <div className="text-[10px] text-slate-600 truncate">{leave.reason || t('type.Note / Activity Notification')}</div>
+            </div>
           </>
         ) : (
-          <>
-            <div className="w-6 h-6 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center text-[10px] font-bold text-white shrink-0 ring-2 ring-white">
-              {user?.avatar ? (
-                <img src={user.avatar} alt={leave.userName} className="w-full h-full object-cover" />
-              ) : (
-                <span>{initials || '?'}</span>
-              )}
-            </div>
-            <span className="font-semibold truncate">{leave.userName.split(' ')[0]}</span>
-          </>
+          <span className="font-semibold truncate">{leave.userName.split(' ')[0]}</span>
         )}
       </div>
     );
