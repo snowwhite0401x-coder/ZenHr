@@ -87,6 +87,14 @@ begin
     create policy "Allow all access for anon dev" on public.leave_requests
       for all using (true) with check (true);
   end if;
+
+  if not exists (
+    select 1 from pg_policies
+    where tablename = 'departments' and policyname = 'Allow all access for anon dev'
+  ) then
+    create policy "Allow all access for anon dev" on public.departments
+      for all using (true) with check (true);
+  end if;
 end$$;
 
 -- 4) Seed data: departments, admin user, permissions ---------------------

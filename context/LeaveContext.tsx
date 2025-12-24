@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { LeaveRequest, User, LeaveStatus, LeaveType, RolePermissions, AppFeature, Department } from '../types.ts';
 import { MOCK_REQUESTS, MOCK_USERS, ANNUAL_LEAVE_LIMIT, PUBLIC_HOLIDAY_COUNT } from '../constants.ts';
-import { fetchUsersAndRequests, fetchLeaveSettings, updateLeaveSettings as supabaseUpdateLeaveSettings, updateUser as supabaseUpdateUser, insertLeaveRequest as supabaseInsertLeaveRequest } from '../services/supabaseLeaveService';
+import { fetchUsersAndRequests, fetchLeaveSettings, updateLeaveSettings as supabaseUpdateLeaveSettings, updateUser as supabaseUpdateUser, insertLeaveRequest as supabaseInsertLeaveRequest, fetchDepartments as supabaseFetchDepartments, insertDepartment as supabaseInsertDepartment, updateDepartmentName as supabaseUpdateDepartmentName, deleteDepartmentByName as supabaseDeleteDepartmentByName } from '../services/supabaseLeaveService';
 import { useLanguage } from './LanguageContext.tsx';
 
 interface LeaveContextType {
@@ -25,9 +25,9 @@ interface LeaveContextType {
   saveGoogleSheetsUrl: (url: string) => void;
   testGoogleSheetsConnection: () => Promise<boolean>;
   sendHeadersToSheet: () => Promise<boolean>;
-  addDepartment: (name: string) => { success: boolean; message: string };
-  updateDepartment: (oldName: string, newName: string) => { success: boolean; message: string };
-  deleteDepartment: (name: string) => { success: boolean; message: string };
+  addDepartment: (name: string) => Promise<{ success: boolean; message: string }>;
+  updateDepartment: (oldName: string, newName: string) => Promise<{ success: boolean; message: string }>;
+  deleteDepartment: (name: string) => Promise<{ success: boolean; message: string }>;
   updateLeaveLimits: (annual: number, publicCount: number) => void;
 }
 
@@ -112,6 +112,17 @@ export const LeaveProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         setRequests(savedReqs ? JSON.parse(savedReqs) : MOCK_REQUESTS);
       }
 
+      // fetch departments from Supabase if available
+      const deptsFromSupabase = await supabaseFetchDepartments();
+      if (deptsFromSupabase.length > 0) {
+        setDepartments(deptsFromSupabase);
+      } else {
+        const saved = localStorage.getItem('zenhr_departments');
+        if (saved) {
+          setDepartments(JSON.parse(saved));
+        }
+      }
+
       // fetch global leave quotas from Supabase if available
       const settings = await fetchLeaveSettings();
       if (settings) {
@@ -185,18 +196,31 @@ export const LeaveProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     setUsers(prev => prev.filter(u => u.id !== id));
   };
 
-  const addDepartment = (name: string) => {
+  const addDepartment = async (name: string) => {
     if (departments.includes(name)) {
       return { success: false, message: t('msg.deptExists') };
     }
+    
+    // บันทึกลง Supabase
+    const result = await supabaseInsertDepartment(name);
+    if (!result.success) {
+      return { success: false, message: result.error || t('msg.deptAddFailed') };
+    }
+
     setDepartments(prev => [...prev, name]);
     return { success: true, message: t('msg.deptAdded') };
   };
 
-  const updateDepartment = (oldName: string, newName: string) => {
+  const updateDepartment = async (oldName: string, newName: string) => {
     if (oldName === newName) return { success: true, message: t('msg.noChange') };
     if (departments.includes(newName)) return { success: false, message: t('msg.deptNameExists') };
     
+    // อัปเดตใน Supabase
+    const result = await supabaseUpdateDepartmentName(oldName, newName);
+    if (!result.success) {
+      return { success: false, message: result.error || t('msg.deptUpdateFailed') };
+    }
+
     setDepartments(prev => prev.map(d => d === oldName ? newName : d));
     setUsers(prev => prev.map(u => u.department === oldName ? { ...u, department: newName } : u));
     setRequests(prev => prev.map(r => r.department === oldName ? { ...r, department: newName } : r));
@@ -204,11 +228,18 @@ export const LeaveProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     return { success: true, message: t('msg.deptUpdated') };
   };
 
-  const deleteDepartment = (name: string) => {
+  const deleteDepartment = async (name: string) => {
     const userCount = users.filter(u => u.department === name).length;
     if (userCount > 0) {
       return { success: false, message: t('msg.deptInUse', { count: userCount }) };
     }
+
+    // ลบจาก Supabase
+    const result = await supabaseDeleteDepartmentByName(name);
+    if (!result.success) {
+      return { success: false, message: result.error || t('msg.deptDeleteFailed') };
+    }
+
     setDepartments(prev => prev.filter(d => d !== name));
     return { success: true, message: t('msg.deptDeleted') };
   };

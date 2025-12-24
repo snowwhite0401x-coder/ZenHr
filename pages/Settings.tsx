@@ -112,18 +112,18 @@ export const Settings: React.FC = () => {
     setShowDeptModal(true);
   };
 
-  const handleDeptSubmit = (e: React.FormEvent) => {
+  const handleDeptSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!deptFormName.trim()) return;
 
     if (editDeptName) {
-      const result = updateDepartment(editDeptName, deptFormName);
+      const result = await updateDepartment(editDeptName, deptFormName);
       if (!result.success) {
         setDeptError(result.message);
         return;
       }
     } else {
-      const result = addDepartment(deptFormName);
+      const result = await addDepartment(deptFormName);
       if (!result.success) {
         setDeptError(result.message);
         return;
@@ -132,9 +132,9 @@ export const Settings: React.FC = () => {
     setShowDeptModal(false);
   };
 
-  const handleDeleteDept = (name: string) => {
+  const handleDeleteDept = async (name: string) => {
     if (!window.confirm(t('set.dept.confirmDelete').replace('{name}', name))) return;
-    const result = deleteDepartment(name);
+    const result = await deleteDepartment(name);
     if (!result.success) {
       alert(result.message);
     }

@@ -254,3 +254,68 @@ export async function updateLeaveStatus(id: string, status: LeaveStatus): Promis
     console.warn('[Supabase] Failed to update leave status', error);
   }
 }
+
+// -------- Departments CRUD -----------------------
+
+export async function fetchDepartments(): Promise<string[]> {
+  if (!supabase) return [];
+
+  const { data, error } = await supabase
+    .from('departments')
+    .select('name')
+    .order('name');
+
+  if (error) {
+    console.warn('[Supabase] Failed to fetch departments', error);
+    return [];
+  }
+
+  return (data || []).map((d: { name: string }) => d.name);
+}
+
+export async function insertDepartment(name: string): Promise<{ success: boolean; error?: string }> {
+  if (!supabase) return { success: false, error: 'Supabase client not initialized' };
+
+  const { error } = await supabase
+    .from('departments')
+    .insert({ name });
+
+  if (error) {
+    console.warn('[Supabase] Failed to insert department', error);
+    return { success: false, error: error.message };
+  }
+
+  return { success: true };
+}
+
+export async function updateDepartmentName(oldName: string, newName: string): Promise<{ success: boolean; error?: string }> {
+  if (!supabase) return { success: false, error: 'Supabase client not initialized' };
+
+  const { error } = await supabase
+    .from('departments')
+    .update({ name: newName })
+    .eq('name', oldName);
+
+  if (error) {
+    console.warn('[Supabase] Failed to update department', error);
+    return { success: false, error: error.message };
+  }
+
+  return { success: true };
+}
+
+export async function deleteDepartmentByName(name: string): Promise<{ success: boolean; error?: string }> {
+  if (!supabase) return { success: false, error: 'Supabase client not initialized' };
+
+  const { error } = await supabase
+    .from('departments')
+    .delete()
+    .eq('name', name);
+
+  if (error) {
+    console.warn('[Supabase] Failed to delete department', error);
+    return { success: false, error: error.message };
+  }
+
+  return { success: true };
+}
