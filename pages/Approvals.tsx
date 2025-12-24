@@ -44,13 +44,13 @@ export const Approvals: React.FC = () => {
                
                <div className="flex space-x-3 w-full md:w-auto">
                  <button 
-                    onClick={() => updateRequestStatus(req.id, LeaveStatus.REJECTED)}
+                    onClick={async () => await updateRequestStatus(req.id, LeaveStatus.REJECTED)}
                     className="flex-1 md:flex-none px-4 py-2 border border-red-200 text-red-600 rounded-lg hover:bg-red-50 transition-colors"
                  >
                    {t('app.btnReject')}
                  </button>
                  <button 
-                    onClick={() => updateRequestStatus(req.id, LeaveStatus.APPROVED)}
+                    onClick={async () => await updateRequestStatus(req.id, LeaveStatus.APPROVED)}
                     className="flex-1 md:flex-none px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 shadow-sm transition-colors"
                  >
                    {t('app.btnApprove')}

@@ -16,19 +16,19 @@ interface LeaveContextType {
   publicHolidayCount: number;
   login: (username: string, pass: string) => boolean;
   logout: () => void;
-  addUser: (user: User) => void;
-  updateUser: (id: string, updatedData: Partial<User>) => void;
-  deleteUser: (id: string) => void;
+  addUser: (user: User) => Promise<void>;
+  updateUser: (id: string, updatedData: Partial<User>) => Promise<void>;
+  deleteUser: (id: string) => Promise<void>;
   addRequest: (req: Omit<LeaveRequest, 'id' | 'createdAt' | 'userName' | 'status' | 'userId' | 'department'>) => Promise<{ success: boolean; message: string }>;
-  updateRequestStatus: (id: string, status: LeaveStatus) => void;
-  updatePermission: (role: 'EMPLOYEE' | 'HR_ADMIN', feature: AppFeature, value: boolean) => void;
+  updateRequestStatus: (id: string, status: LeaveStatus) => Promise<void>;
+  updatePermission: (role: 'EMPLOYEE' | 'HR_ADMIN', feature: AppFeature, value: boolean) => Promise<void>;
   saveGoogleSheetsUrl: (url: string) => void;
   testGoogleSheetsConnection: () => Promise<boolean>;
   sendHeadersToSheet: () => Promise<boolean>;
   addDepartment: (name: string) => Promise<{ success: boolean; message: string }>;
   updateDepartment: (oldName: string, newName: string) => Promise<{ success: boolean; message: string }>;
   deleteDepartment: (name: string) => Promise<{ success: boolean; message: string }>;
-  updateLeaveLimits: (annual: number, publicCount: number) => void;
+  updateLeaveLimits: (annual: number, publicCount: number) => Promise<void>;
 }
 
 const DEFAULT_PERMISSIONS: RolePermissions = {
@@ -204,45 +204,48 @@ export const LeaveProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     setCurrentUserId(null);
   };
 
-  const addUser = (user: User) => {
-    // บันทึกลง Supabase (ส่งข้อมูลโดยไม่รวม id เพราะ Supabase จะสร้างให้)
+  const addUser = async (user: User) => {
+    // บันทึกลง Supabase ก่อน (ส่งข้อมูลโดยไม่รวม id เพราะ Supabase จะสร้างให้)
     const { id, ...userWithoutId } = user;
-    supabaseInsertUser(userWithoutId).then((result) => {
-      if (result.success && result.id) {
-        // ใช้ id ที่ Supabase สร้างให้
-        setUsers(prev => {
-          const existing = prev.find(u => u.id === id);
-          if (existing) {
-            return prev.map(u => u.id === id ? { ...u, id: result.id! } : u);
-          }
-          return [...prev, { ...user, id: result.id! }];
-        });
-      } else {
-        // ถ้า Supabase ไม่ได้ตั้งค่า หรือ error ให้ใช้ id เดิม
-        setUsers(prev => [...prev, user]);
-        if (result.error) {
-          console.warn('[Supabase] Failed to insert user, using local state only', result.error);
+    const result = await supabaseInsertUser(userWithoutId);
+    
+    if (result.success && result.id) {
+      // ใช้ id ที่ Supabase สร้างให้
+      setUsers(prev => {
+        const existing = prev.find(u => u.id === id);
+        if (existing) {
+          return prev.map(u => u.id === id ? { ...u, id: result.id! } : u);
         }
-      }
-    }).catch((err) => {
-      console.warn('[Supabase] Failed to insert user', err);
+        return [...prev, { ...user, id: result.id! }];
+      });
+    } else {
+      // ถ้า Supabase ไม่ได้ตั้งค่า หรือ error ให้ใช้ id เดิม
       setUsers(prev => [...prev, user]);
-    });
+      if (result.error) {
+        console.warn('[Supabase] Failed to insert user, using local state only', result.error);
+      }
+    }
   };
 
-  const updateUser = (id: string, updatedData: Partial<User>) => {
+  const updateUser = async (id: string, updatedData: Partial<User>) => {
+    // บันทึกลง Supabase ก่อน
+    const result = await supabaseUpdateUser(id, updatedData);
+    if (!result.success) {
+      console.warn('[Supabase] Failed to update user', result.error);
+      // ยังอัปเดต state ต่อ (fallback)
+    }
+    // อัปเดต state หลังจาก Supabase
     setUsers(prev => prev.map(u => u.id === id ? { ...u, ...updatedData } : u));
-    // บันทึกลง Supabase
-    supabaseUpdateUser(id, updatedData).catch((err) =>
-      console.warn('[Supabase] Failed to update user', err),
-    );
   };
 
-  const deleteUser = (id: string) => {
-    // ลบจาก Supabase
-    supabaseDeleteUser(id).catch((err) =>
-      console.warn('[Supabase] Failed to delete user', err),
-    );
+  const deleteUser = async (id: string) => {
+    // ลบจาก Supabase ก่อน
+    const result = await supabaseDeleteUser(id);
+    if (!result.success) {
+      console.warn('[Supabase] Failed to delete user', result.error);
+      // ยังลบจาก state ต่อ (fallback)
+    }
+    // ลบจาก state หลังจาก Supabase
     setUsers(prev => prev.filter(u => u.id !== id));
   };
 
@@ -300,7 +303,14 @@ export const LeaveProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     return { success: true, message: t('msg.deptDeleted') };
   };
 
-  const updatePermission = (role: 'EMPLOYEE' | 'HR_ADMIN', feature: AppFeature, value: boolean) => {
+  const updatePermission = async (role: 'EMPLOYEE' | 'HR_ADMIN', feature: AppFeature, value: boolean) => {
+    // บันทึกลง Supabase ก่อน
+    const result = await supabaseUpdatePermission(role, feature, value);
+    if (!result.success) {
+      console.warn('[Supabase] Failed to update permission', result.error);
+      // ยังอัปเดต state ต่อ (fallback)
+    }
+    // อัปเดต state หลังจาก Supabase
     setPermissions(prev => ({
       ...prev,
       [role]: {
@@ -308,19 +318,16 @@ export const LeaveProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         [feature]: value
       }
     }));
-    // บันทึกลง Supabase
-    supabaseUpdatePermission(role, feature, value).catch((err) =>
-      console.warn('[Supabase] Failed to update permission', err),
-    );
   };
 
-  const updateLeaveLimits = (annual: number, publicCount: number) => {
+  const updateLeaveLimits = async (annual: number, publicCount: number) => {
+    // บันทึกลง Supabase ก่อน
+    await supabaseUpdateLeaveSettings(annual, publicCount).catch((err) => {
+      console.warn('[Supabase] Failed to update leave_settings', err);
+    });
+    // อัปเดต state หลังจาก Supabase
     setAnnualLeaveLimit(annual);
     setPublicHolidayCount(publicCount);
-    // persist to Supabase (shared for all users)
-    supabaseUpdateLeaveSettings(annual, publicCount).catch((err) =>
-      console.warn('[Supabase] Failed to update leave_settings', err),
-    );
   };
 
   const saveGoogleSheetsUrl = (url: string) => {
@@ -442,12 +449,13 @@ export const LeaveProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       ...data
     };
 
-    setRequests(prev => [newRequest, ...prev]);
+    // บันทึกลง Supabase ก่อน
+    await supabaseInsertLeaveRequest(newRequest).catch((err) => {
+      console.warn('[Supabase] Failed to insert leave_request from addRequest', err);
+    });
 
-    // บันทึกลง Supabase
-    supabaseInsertLeaveRequest(newRequest).catch((err) =>
-      console.warn('[Supabase] Failed to insert leave_request from addRequest', err),
-    );
+    // อัปเดต state หลังจาก Supabase
+    setRequests(prev => [newRequest, ...prev]);
 
     if (requestYear === currentYear) {
         if (data.type === LeaveType.ANNUAL) {
@@ -472,18 +480,19 @@ export const LeaveProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     return { success: true, message: t('msg.reqSuccess') };
   };
 
-  const updateRequestStatus = (id: string, status: LeaveStatus) => {
+  const updateRequestStatus = async (id: string, status: LeaveStatus) => {
     const targetRequest = requests.find(r => r.id === id);
     if (targetRequest && googleSheetsUrl) {
         sendToGoogleSheets({ ...targetRequest, status });
     }
 
-    setRequests(prev => prev.map(req => req.id === id ? { ...req, status } : req));
+    // บันทึกลง Supabase ก่อน
+    await supabaseUpdateLeaveStatus(id, status).catch((err) => {
+      console.warn('[Supabase] Failed to update leave status', err);
+    });
     
-    // บันทึกลง Supabase
-    supabaseUpdateLeaveStatus(id, status).catch((err) =>
-      console.warn('[Supabase] Failed to update leave status', err),
-    );
+    // อัปเดต state หลังจาก Supabase
+    setRequests(prev => prev.map(req => req.id === id ? { ...req, status } : req));
     
     if (status === LeaveStatus.REJECTED) {
         const req = requests.find(r => r.id === id);

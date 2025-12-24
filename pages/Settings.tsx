@@ -68,7 +68,7 @@ export const Settings: React.FC = () => {
   const handleUserSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (editMode && editingId) {
-      updateUser(editingId, {
+      await updateUser(editingId, {
         name: formData.name,
         username: formData.username,
         password: formData.password,
@@ -500,7 +500,7 @@ export const Settings: React.FC = () => {
 
               <div className="mt-6">
                 <button
-                  onClick={() => updateLeaveLimits(annualLimitInput, publicHolidayInput)}
+                  onClick={async () => await updateLeaveLimits(annualLimitInput, publicHolidayInput)}
                   className="bg-blue-600 text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
                 >
                   {t('policy.save')}
