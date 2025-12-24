@@ -453,7 +453,7 @@ export const Reports: React.FC = () => {
                 {/* Stats Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                   {/* Annual Leave Card */}
-                  <div className="lg:col-span-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-3xl p-6 relative overflow-hidden text-white shadow-lg shadow-blue-500/20 group">
+                  <div className="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-3xl p-6 relative overflow-hidden text-white shadow-lg shadow-blue-500/20 group">
                     <div className="absolute -right-10 -top-10 w-48 h-48 bg-white/10 rounded-full blur-2xl group-hover:scale-125 transition-transform duration-700"></div>
                     <div className="absolute right-20 bottom-0 w-32 h-32 bg-indigo-400/20 rounded-full blur-xl"></div>
                     <div className="relative z-10 flex flex-col justify-between h-full">
