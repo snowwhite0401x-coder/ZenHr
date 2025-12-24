@@ -92,13 +92,27 @@ export const CalendarPage: React.FC = () => {
 
   const todayStr = new Date().toISOString().split('T')[0];
 
-  const getLeavesForDate = (dateStr: string): LeaveRequest[] => {
-    return requests.filter(r =>
-      r.status === LeaveStatus.APPROVED &&
-      (filterDept === 'ALL' || r.department === filterDept) &&
-      (filterType === 'ALL' || r.type === filterType) &&
-      r.startDate <= dateStr && r.endDate >= dateStr
-    );
+  const getLeavesForDate = (dateStr: string): { leaves: LeaveRequest[]; notes: LeaveRequest[] } => {
+    const allItems = requests.filter(r => {
+      // สำหรับ NOTE type แสดงเฉพาะเมื่อ startDate ตรงกับ dateStr เท่านั้น
+      if (r.type === LeaveType.NOTE) {
+        return r.status === LeaveStatus.APPROVED &&
+          (filterDept === 'ALL' || r.department === filterDept) &&
+          (filterType === 'ALL' || r.type === filterType) &&
+          r.startDate === dateStr;
+      }
+      // สำหรับประเภทอื่นๆ ใช้ logic เดิม
+      return r.status === LeaveStatus.APPROVED &&
+        (filterDept === 'ALL' || r.department === filterDept) &&
+        (filterType === 'ALL' || r.type === filterType) &&
+        r.startDate <= dateStr && r.endDate >= dateStr;
+    });
+
+    // แยก NOTE type ออกจาก leaves
+    const leaves = allItems.filter(r => r.type !== LeaveType.NOTE);
+    const notes = allItems.filter(r => r.type === LeaveType.NOTE);
+
+    return { leaves, notes };
   };
 
   const getLeavesForDay = (day: number): { leaves: LeaveRequest[]; notes: LeaveRequest[] } => {
