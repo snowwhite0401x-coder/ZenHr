@@ -453,34 +453,23 @@ export const Reports: React.FC = () => {
                 {/* Stats Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                   {/* Annual Leave Card */}
-                  <div className="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-3xl p-6 relative overflow-hidden text-white shadow-lg shadow-blue-500/20 group">
-                    <div className="absolute -right-10 -top-10 w-48 h-48 bg-white/10 rounded-full blur-2xl group-hover:scale-125 transition-transform duration-700"></div>
-                    <div className="absolute right-20 bottom-0 w-32 h-32 bg-indigo-400/20 rounded-full blur-xl"></div>
-                    <div className="relative z-10 flex flex-col justify-between h-full">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <h3 className="text-blue-100 text-sm font-medium mb-1 flex items-center gap-2">
-                            <span className="material-symbols-outlined text-[18px]">beach_access</span>
-                            ลาพักร้อน
-                          </h3>
-                          <div className="text-5xl font-bold tracking-tight mt-2">
-                            {individualStats.annual.remaining} <span className="text-lg font-normal text-blue-200">/ {individualStats.annual.limit}</span>
-                          </div>
-                        </div>
-                        <div className="bg-white/20 backdrop-blur-sm p-2 rounded-xl">
-                          <span className="text-xs font-medium">เหลือ {individualStats.annual.remaining} วัน</span>
-                        </div>
+                  <div className="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-3xl p-6 relative overflow-hidden text-white shadow-lg shadow-blue-500/20 group hover:-translate-y-1 transition-transform duration-300">
+                    <div className="absolute -right-4 -top-4 w-24 h-24 bg-white/10 rounded-full opacity-50 transition-transform group-hover:scale-110"></div>
+                    <div className="relative z-10">
+                      <div className="flex items-center gap-2 text-blue-100 mb-3">
+                        <span className="p-2 bg-white/20 rounded-lg material-symbols-outlined text-[20px]">beach_access</span>
+                        <span className="font-medium text-sm">ลาพักร้อน</span>
                       </div>
-                      <div className="mt-8">
-                        <div className="flex justify-between text-xs text-blue-200 mb-2">
-                          <span>ความคืบหน้าการใช้</span>
-                          <span>{Math.round((individualStats.annual.used / individualStats.annual.limit) * 100)}%</span>
+                      <div className="mt-4">
+                        <div className="text-3xl font-bold text-white">
+                          {individualStats.annual.remaining} <span className="text-sm font-normal text-blue-200">/ {individualStats.annual.limit}</span>
                         </div>
-                        <div className="w-full bg-black/20 rounded-full h-3 p-0.5">
-                          <div
-                            className="bg-white h-2 rounded-full shadow-sm"
-                            style={{ width: `${Math.min(100, (individualStats.annual.used / individualStats.annual.limit) * 100)}%` }}
-                          ></div>
+                        <p className="text-xs text-blue-200 mt-1">ปี {individualFilterYear}</p>
+                      </div>
+                      <div className="mt-4 pt-4 border-t border-white/20 flex justify-between items-center">
+                        <span className="text-xs text-blue-200">ใช้ไป {individualStats.annual.used} วัน</span>
+                        <div className="w-16 h-1.5 bg-black/20 rounded-full overflow-hidden">
+                          <div className="h-full bg-white" style={{ width: `${Math.min(100, (individualStats.annual.used / individualStats.annual.limit) * 100)}%` }}></div>
                         </div>
                       </div>
                     </div>
