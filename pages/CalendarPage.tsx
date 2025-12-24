@@ -432,13 +432,16 @@ export const CalendarPage: React.FC = () => {
               {weekDays.map((date, idx) => {
                 const dateStr = formatDateStr(date);
                 const isToday = dateStr === todayStr;
-                const leaves = getLeavesForDate(dateStr);
+                const { leaves, notes } = getLeavesForDate(dateStr);
 
                 return (
                   <div key={idx} className={`bg-white min-h-[200px] p-3 transition-colors hover:bg-gray-50 flex flex-col gap-2 group ${isToday ? 'ring-2 ring-indigo-500' : ''}`}>
                     <div className="flex justify-between items-center">
                       <span className="text-xs font-medium text-gray-500">
-                        {leaves.length} {t('cal.away')}
+                        {leaves.length > 0 && `${leaves.length} ${t('cal.away')}`}
+                        {leaves.length > 0 && notes.length > 0 && ' • '}
+                        {notes.length > 0 && `${notes.length} โน้ต`}
+                        {leaves.length === 0 && notes.length === 0 && 'ไม่มีกิจกรรม'}
                       </span>
                       <button
                         type="button"
@@ -450,9 +453,12 @@ export const CalendarPage: React.FC = () => {
                         </svg>
                       </button>
                     </div>
-
+                    
                     <div className="flex flex-col gap-2 flex-1 overflow-y-auto custom-scrollbar">
+                      {/* แสดงการลาก่อน */}
                       {leaves.map(leave => renderLeaveItem(leave))}
+                      {/* แสดงโน้ต/แจ้งเตือนทีหลัง */}
+                      {notes.map(note => renderLeaveItem(note))}
                     </div>
                   </div>
                 );
