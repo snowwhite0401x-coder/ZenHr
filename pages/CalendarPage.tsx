@@ -163,24 +163,34 @@ export const CalendarPage: React.FC = () => {
       .join('')
       .slice(0, 2)
       .toUpperCase();
+    const isNote = leave.type === LeaveType.NOTE;
 
     return (
       <div 
         key={leave.id} 
-        title={`${leave.userName} (${leave.department}) - ${t('type.'+leave.type)}\nReason: ${leave.reason}`}
+        title={`${leave.userName} (${leave.department}) - ${t('type.'+leave.type)}${isNote ? '' : '\nReason: ' + leave.reason}`}
         className={`
           text-xs px-2 py-1.5 rounded-md border shadow-sm cursor-pointer flex items-center gap-2
           ${style.bg} ${style.text} ${style.border}
         `}
       >
-        <div className="w-6 h-6 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center text-[10px] font-bold text-white shrink-0 ring-2 ring-white">
-          {user?.avatar ? (
-            <img src={user.avatar} alt={leave.userName} className="w-full h-full object-cover" />
-          ) : (
-            <span>{initials || '?'}</span>
-          )}
-        </div>
-        <span className="font-semibold truncate">{leave.userName.split(' ')[0]}</span>
+        {isNote ? (
+          <>
+            <span className="text-orange-500">⭐</span>
+            <span className="font-semibold truncate flex-1">{leave.reason || t('type.Note / Activity Notification')}</span>
+          </>
+        ) : (
+          <>
+            <div className="w-6 h-6 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center text-[10px] font-bold text-white shrink-0 ring-2 ring-white">
+              {user?.avatar ? (
+                <img src={user.avatar} alt={leave.userName} className="w-full h-full object-cover" />
+              ) : (
+                <span>{initials || '?'}</span>
+              )}
+            </div>
+            <span className="font-semibold truncate">{leave.userName.split(' ')[0]}</span>
+          </>
+        )}
       </div>
     );
   };
