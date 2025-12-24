@@ -34,6 +34,7 @@ export const NewLeaveModal: React.FC<Props> = ({ isOpen, onClose, defaultStartDa
   }, [isOpen, defaultStartDate, defaultEndDate]);
 
   if (!isOpen) return null;
+  if (!currentUser) return null; // ป้องกัน error เมื่อ currentUser เป็น null
 
   // คำนวณจำนวนวันลา (ไม่นับวันอาทิตย์)
   // สำหรับ NOTE type ไม่ต้องคำนวณวันลา (ใช้ 0 วัน)
