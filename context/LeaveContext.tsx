@@ -25,9 +25,9 @@ interface LeaveContextType {
   saveGoogleSheetsUrl: (url: string) => void;
   testGoogleSheetsConnection: () => Promise<boolean>;
   sendHeadersToSheet: () => Promise<boolean>;
-  addDepartment: (name: string) => { success: boolean; message: string };
-  updateDepartment: (oldName: string, newName: string) => { success: boolean; message: string };
-  deleteDepartment: (name: string) => { success: boolean; message: string };
+  addDepartment: (name: string) => Promise<{ success: boolean; message: string }>;
+  updateDepartment: (oldName: string, newName: string) => Promise<{ success: boolean; message: string }>;
+  deleteDepartment: (name: string) => Promise<{ success: boolean; message: string }>;
   updateLeaveLimits: (annual: number, publicCount: number) => void;
 }
 
@@ -246,43 +246,35 @@ export const LeaveProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     setUsers(prev => prev.filter(u => u.id !== id));
   };
 
-  const addDepartment = (name: string) => {
+  const addDepartment = async (name: string) => {
     if (departments.includes(name)) {
       return { success: false, message: t('msg.deptExists') };
     }
     
-    // บันทึกลง Supabase
-    supabaseInsertDepartment(name).then((result) => {
-      if (result.success) {
-        setDepartments(prev => [...prev, name]);
-      } else {
-        console.warn('[Supabase] Failed to insert department', result.error);
-      }
-    }).catch((err) => {
-      console.warn('[Supabase] Failed to insert department', err);
-    });
+    // บันทึกลง Supabase ก่อน
+    const result = await supabaseInsertDepartment(name);
+    if (!result.success) {
+      console.warn('[Supabase] Failed to insert department', result.error);
+      return { success: false, message: result.error || t('msg.deptAddFailed') };
+    }
 
+    // ถ้าบันทึก Supabase สำเร็จแล้วค่อยอัปเดต state
     setDepartments(prev => [...prev, name]);
     return { success: true, message: t('msg.deptAdded') };
   };
 
-  const updateDepartment = (oldName: string, newName: string) => {
+  const updateDepartment = async (oldName: string, newName: string) => {
     if (oldName === newName) return { success: true, message: t('msg.noChange') };
     if (departments.includes(newName)) return { success: false, message: t('msg.deptNameExists') };
     
-    // อัปเดตใน Supabase
-    supabaseUpdateDepartmentName(oldName, newName).then((result) => {
-      if (result.success) {
-        setDepartments(prev => prev.map(d => d === oldName ? newName : d));
-        setUsers(prev => prev.map(u => u.department === oldName ? { ...u, department: newName } : u));
-        setRequests(prev => prev.map(r => r.department === oldName ? { ...r, department: newName } : r));
-      } else {
-        console.warn('[Supabase] Failed to update department', result.error);
-      }
-    }).catch((err) => {
-      console.warn('[Supabase] Failed to update department', err);
-    });
+    // อัปเดตใน Supabase ก่อน
+    const result = await supabaseUpdateDepartmentName(oldName, newName);
+    if (!result.success) {
+      console.warn('[Supabase] Failed to update department', result.error);
+      return { success: false, message: result.error || t('msg.deptUpdateFailed') };
+    }
 
+    // ถ้าอัปเดต Supabase สำเร็จแล้วค่อยอัปเดต state
     setDepartments(prev => prev.map(d => d === oldName ? newName : d));
     setUsers(prev => prev.map(u => u.department === oldName ? { ...u, department: newName } : u));
     setRequests(prev => prev.map(r => r.department === oldName ? { ...r, department: newName } : r));
@@ -290,23 +282,20 @@ export const LeaveProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     return { success: true, message: t('msg.deptUpdated') };
   };
 
-  const deleteDepartment = (name: string) => {
+  const deleteDepartment = async (name: string) => {
     const userCount = users.filter(u => u.department === name).length;
     if (userCount > 0) {
       return { success: false, message: t('msg.deptInUse', { count: userCount }) };
     }
 
-    // ลบจาก Supabase
-    supabaseDeleteDepartmentByName(name).then((result) => {
-      if (result.success) {
-        setDepartments(prev => prev.filter(d => d !== name));
-      } else {
-        console.warn('[Supabase] Failed to delete department', result.error);
-      }
-    }).catch((err) => {
-      console.warn('[Supabase] Failed to delete department', err);
-    });
+    // ลบจาก Supabase ก่อน
+    const result = await supabaseDeleteDepartmentByName(name);
+    if (!result.success) {
+      console.warn('[Supabase] Failed to delete department', result.error);
+      return { success: false, message: result.error || t('msg.deptDeleteFailed') };
+    }
 
+    // ถ้าลบจาก Supabase สำเร็จแล้วค่อยอัปเดต state
     setDepartments(prev => prev.filter(d => d !== name));
     return { success: true, message: t('msg.deptDeleted') };
   };
