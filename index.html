@@ -19,12 +19,29 @@
       .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
       .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
       
-      :root { --indigo-primary: #6366f1; }
+      :root { 
+        --indigo-primary: #6366f1;
+        --primary: #2b8cee;
+        --background-light: #f6f7f8;
+        --background-dark: #101922;
+      }
+      .bg-primary { background-color: var(--primary); }
+      .text-primary { color: var(--primary); }
+      .bg-background-light { background-color: var(--background-light); }
+      .bg-background-dark { background-color: var(--background-dark); }
+      .ring-primary\/10 { --tw-ring-color: rgba(43, 140, 238, 0.1); }
+      .shadow-primary\/25 { box-shadow: 0 10px 15px -3px rgba(43, 140, 238, 0.25); }
       .glass {
         background: rgba(255, 255, 255, 0.7);
         backdrop-filter: blur(10px);
         -webkit-backdrop-filter: blur(10px);
         border: 1px solid rgba(255, 255, 255, 0.2);
+      }
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+      .material-symbols-filled {
+        font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
       }
     </style>
     <script type="importmap">
