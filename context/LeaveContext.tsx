@@ -506,15 +506,18 @@ export const LeaveProvider: React.FC<{ children: ReactNode }> = ({ children }) =
           }
         }
         // อัปเดตใน Supabase
-        await supabaseUpdateUser(targetRequest.userId, { annualLeaveUsed: newAnnualUsed }).catch((err) => {
+        const updateResult = await supabaseUpdateUser(targetRequest.userId, { annualLeaveUsed: newAnnualUsed }).catch((err) => {
           console.warn('[Supabase] Failed to update annual_leave_used', err);
+          return { success: false };
         });
-        // อัปเดต state
-        setUsers(prev => prev.map(u => 
-          u.id === targetRequest.userId 
-          ? { ...u, annualLeaveUsed: newAnnualUsed }
-          : u
-        ));
+        // อัปเดต state เฉพาะเมื่ออัปเดต Supabase สำเร็จ
+        if (updateResult?.success !== false) {
+          setUsers(prev => prev.map(u => 
+            u.id === targetRequest.userId 
+            ? { ...u, annualLeaveUsed: newAnnualUsed }
+            : u
+          ));
+        }
       } else if (targetRequest.type === LeaveType.PUBLIC_HOLIDAY) {
         if (status === LeaveStatus.APPROVED) {
           // เพิ่มวันลาที่ใช้ไปเมื่ออนุมัติ
@@ -527,15 +530,18 @@ export const LeaveProvider: React.FC<{ children: ReactNode }> = ({ children }) =
           }
         }
         // อัปเดตใน Supabase
-        await supabaseUpdateUser(targetRequest.userId, { publicHolidayUsed: newPublicUsed }).catch((err) => {
+        const updateResult = await supabaseUpdateUser(targetRequest.userId, { publicHolidayUsed: newPublicUsed }).catch((err) => {
           console.warn('[Supabase] Failed to update public_holiday_used', err);
+          return { success: false };
         });
-        // อัปเดต state
-        setUsers(prev => prev.map(u => 
-          u.id === targetRequest.userId 
-          ? { ...u, publicHolidayUsed: newPublicUsed }
-          : u
-        ));
+        // อัปเดต state เฉพาะเมื่ออัปเดต Supabase สำเร็จ
+        if (updateResult?.success !== false) {
+          setUsers(prev => prev.map(u => 
+            u.id === targetRequest.userId 
+            ? { ...u, publicHolidayUsed: newPublicUsed }
+            : u
+          ));
+        }
       }
     }
   };
