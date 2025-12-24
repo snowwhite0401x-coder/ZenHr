@@ -35,12 +35,27 @@ export const NewLeaveModal: React.FC<Props> = ({ isOpen, onClose, defaultStartDa
 
   if (!isOpen) return null;
 
+  // คำนวณจำนวนวันทำงาน (ไม่รวมเสาร์-อาทิตย์)
   const calculateDays = (start: string, end: string) => {
     if (!start || !end) return 0;
-    const s = new Date(start);
-    const e = new Date(end);
-    const diffTime = Math.abs(e.getTime() - s.getTime());
-    return Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+    const s = new Date(start + 'T00:00:00'); // ใช้เวลาเที่ยงคืนเพื่อหลีกเลี่ยงปัญหา timezone
+    const e = new Date(end + 'T00:00:00');
+    
+    let count = 0;
+    const current = new Date(s);
+    
+    // วนลูปจากวันเริ่มต้นถึงวันสิ้นสุด
+    while (current <= e) {
+      const dayOfWeek = current.getDay(); // 0 = อาทิตย์, 6 = เสาร์
+      // นับเฉพาะวันจันทร์-ศุกร์ (1-5)
+      if (dayOfWeek >= 1 && dayOfWeek <= 5) {
+        count++;
+      }
+      // เพิ่ม 1 วัน
+      current.setDate(current.getDate() + 1);
+    }
+    
+    return count;
   };
 
   const daysCount = calculateDays(formData.startDate, formData.endDate);
