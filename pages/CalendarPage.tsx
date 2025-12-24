@@ -101,7 +101,7 @@ export const CalendarPage: React.FC = () => {
     );
   };
 
-  const getLeavesForDay = (day: number) => {
+  const getLeavesForDay = (day: number): { leaves: LeaveRequest[]; notes: LeaveRequest[] } => {
     const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
     return getLeavesForDate(dateStr);
   };
