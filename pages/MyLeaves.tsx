@@ -30,9 +30,6 @@ export const MyLeaves: React.FC = () => {
     setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
   };
 
-  const annualUsed = currentUser.annualLeaveUsed;
-  const publicUsed = currentUser.publicHolidayUsed || 0;
-
   // Calculate Month/Year stats
   const now = new Date();
   const currentMonth = now.getMonth();
@@ -52,6 +49,11 @@ export const MyLeaves: React.FC = () => {
   const publicStats = getUsage(LeaveType.PUBLIC_HOLIDAY);
   const personalStats = getUsage(LeaveType.PERSONAL);
   const sickStats = getUsage(LeaveType.SICK);
+
+  // ใช้ค่าจาก database (currentUser) แต่ถ้าไม่ตรงกับที่คำนวณจาก requests ให้ใช้ค่าจาก requests
+  // เพื่อให้แน่ใจว่าข้อมูลถูกต้อง
+  const annualUsed = Math.max(currentUser.annualLeaveUsed || 0, annualStats.year);
+  const publicUsed = Math.max(currentUser.publicHolidayUsed || 0, publicStats.year);
 
   return (
     <div className="bg-slate-100/60 min-h-full -mx-4 -mt-4 px-4 py-4 md:px-6 md:py-6">

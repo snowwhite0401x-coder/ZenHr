@@ -457,21 +457,8 @@ export const LeaveProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     // อัปเดต state หลังจาก Supabase
     setRequests(prev => [newRequest, ...prev]);
 
-    if (requestYear === currentYear) {
-        if (data.type === LeaveType.ANNUAL) {
-            setUsers(prev => prev.map(u => 
-                u.id === currentUser.id 
-                ? { ...u, annualLeaveUsed: u.annualLeaveUsed + data.daysCount }
-                : u
-            ));
-        } else if (data.type === LeaveType.PUBLIC_HOLIDAY) {
-            setUsers(prev => prev.map(u => 
-                u.id === currentUser.id 
-                ? { ...u, publicHolidayUsed: (u.publicHolidayUsed || 0) + data.daysCount }
-                : u
-            ));
-        }
-    }
+    // ไม่ต้องอัปเดตวันลาที่ใช้ไปตอนขอลา เพราะยังไม่ได้อนุมัติ
+    // จะอัปเดตเมื่ออนุมัติใน updateRequestStatus เท่านั้น
 
     if (googleSheetsUrl) {
       sendToGoogleSheets(newRequest).catch(() => {});
@@ -482,6 +469,8 @@ export const LeaveProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
   const updateRequestStatus = async (id: string, status: LeaveStatus) => {
     const targetRequest = requests.find(r => r.id === id);
+    if (!targetRequest) return;
+
     if (targetRequest && googleSheetsUrl) {
         sendToGoogleSheets({ ...targetRequest, status });
     }
@@ -494,27 +483,60 @@ export const LeaveProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     // อัปเดต state หลังจาก Supabase
     setRequests(prev => prev.map(req => req.id === id ? { ...req, status } : req));
     
-    if (status === LeaveStatus.REJECTED) {
-        const req = requests.find(r => r.id === id);
-        if (req) {
-            const reqYear = new Date(req.startDate).getFullYear();
-            const currentYear = new Date().getFullYear();
-            if (reqYear === currentYear) {
-                if (req.type === LeaveType.ANNUAL) {
-                    setUsers(prev => prev.map(u => 
-                        u.id === req.userId 
-                        ? { ...u, annualLeaveUsed: Math.max(0, u.annualLeaveUsed - req.daysCount) }
-                        : u
-                    ));
-                } else if (req.type === LeaveType.PUBLIC_HOLIDAY) {
-                    setUsers(prev => prev.map(u => 
-                        u.id === req.userId 
-                        ? { ...u, publicHolidayUsed: Math.max(0, (u.publicHolidayUsed || 0) - req.daysCount) }
-                        : u
-                    ));
-                }
-            }
+    const reqYear = new Date(targetRequest.startDate).getFullYear();
+    const currentYear = new Date().getFullYear();
+    
+    // อัปเดตวันลาที่ใช้ไปใน Supabase เมื่ออนุมัติหรือปฏิเสธ
+    if (reqYear === currentYear && (status === LeaveStatus.APPROVED || status === LeaveStatus.REJECTED)) {
+      const user = users.find(u => u.id === targetRequest.userId);
+      if (!user) return;
+
+      let newAnnualUsed = user.annualLeaveUsed;
+      let newPublicUsed = user.publicHolidayUsed || 0;
+
+      if (targetRequest.type === LeaveType.ANNUAL) {
+        if (status === LeaveStatus.APPROVED) {
+          // เพิ่มวันลาที่ใช้ไปเมื่ออนุมัติ
+          newAnnualUsed = user.annualLeaveUsed + targetRequest.daysCount;
+        } else if (status === LeaveStatus.REJECTED) {
+          // ลดวันลาที่ใช้ไปเมื่อปฏิเสธ (ถ้าเคยอนุมัติมาก่อน)
+          const oldStatus = targetRequest.status;
+          if (oldStatus === LeaveStatus.APPROVED) {
+            newAnnualUsed = Math.max(0, user.annualLeaveUsed - targetRequest.daysCount);
+          }
         }
+        // อัปเดตใน Supabase
+        await supabaseUpdateUser(targetRequest.userId, { annualLeaveUsed: newAnnualUsed }).catch((err) => {
+          console.warn('[Supabase] Failed to update annual_leave_used', err);
+        });
+        // อัปเดต state
+        setUsers(prev => prev.map(u => 
+          u.id === targetRequest.userId 
+          ? { ...u, annualLeaveUsed: newAnnualUsed }
+          : u
+        ));
+      } else if (targetRequest.type === LeaveType.PUBLIC_HOLIDAY) {
+        if (status === LeaveStatus.APPROVED) {
+          // เพิ่มวันลาที่ใช้ไปเมื่ออนุมัติ
+          newPublicUsed = (user.publicHolidayUsed || 0) + targetRequest.daysCount;
+        } else if (status === LeaveStatus.REJECTED) {
+          // ลดวันลาที่ใช้ไปเมื่อปฏิเสธ (ถ้าเคยอนุมัติมาก่อน)
+          const oldStatus = targetRequest.status;
+          if (oldStatus === LeaveStatus.APPROVED) {
+            newPublicUsed = Math.max(0, (user.publicHolidayUsed || 0) - targetRequest.daysCount);
+          }
+        }
+        // อัปเดตใน Supabase
+        await supabaseUpdateUser(targetRequest.userId, { publicHolidayUsed: newPublicUsed }).catch((err) => {
+          console.warn('[Supabase] Failed to update public_holiday_used', err);
+        });
+        // อัปเดต state
+        setUsers(prev => prev.map(u => 
+          u.id === targetRequest.userId 
+          ? { ...u, publicHolidayUsed: newPublicUsed }
+          : u
+        ));
+      }
     }
   };
 
