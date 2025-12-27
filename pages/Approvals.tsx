@@ -121,34 +121,37 @@ export const Approvals: React.FC = () => {
             <div className="flex flex-wrap gap-2">
               <button
                 onClick={() => setFilterType('ALL')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all ${filterType === 'ALL'
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
+                  filterType === 'ALL'
                     ? 'bg-primary text-white shadow-lg shadow-primary/25 hover:bg-blue-600 transform hover:-translate-y-0.5'
-                    : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'
-                  }`}
+                    : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
+                }`}
               >
                 <span>All Requests</span>
               </button>
               <button
                 onClick={() => setFilterType(LeaveType.ANNUAL)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-colors ${filterType === LeaveType.ANNUAL
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-colors ${
+                  filterType === LeaveType.ANNUAL
                     ? 'bg-primary text-white shadow-lg shadow-primary/25'
-                    : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'
-                  }`}
+                    : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
+                }`}
               >
                 <span>Annual Leave</span>
               </button>
               <button
                 onClick={() => setFilterType(LeaveType.SICK)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-colors ${filterType === LeaveType.SICK
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-colors ${
+                  filterType === LeaveType.SICK
                     ? 'bg-primary text-white shadow-lg shadow-primary/25'
-                    : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'
-                  }`}
+                    : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
+                }`}
               >
                 <span>Sick Leave</span>
               </button>
               <button
                 onClick={() => setSortBy(sortBy === 'date' ? 'name' : 'date')}
-                className="flex items-center gap-1 px-4 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-sm font-semibold hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+                className="flex items-center gap-1 px-4 py-2 rounded-xl bg-white border border-slate-200 text-slate-700 text-sm font-semibold hover:bg-slate-50 transition-colors"
               >
                 <span>Sort by {sortBy === 'date' ? 'Date' : 'Name'}</span>
                 <span className="material-symbols-outlined text-[18px]">expand_more</span>
