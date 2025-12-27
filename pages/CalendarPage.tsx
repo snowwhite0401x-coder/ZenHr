@@ -167,6 +167,13 @@ export const CalendarPage: React.FC = () => {
     return date.toISOString().split('T')[0];
   };
 
+  const handleDeleteLeave = async (e: React.MouseEvent, leaveId: string) => {
+    e.stopPropagation();
+    if (confirm('คุณต้องการลบรายการนี้หรือไม่?')) {
+      await deleteRequest(leaveId);
+    }
+  };
+
   const renderLeaveItem = (leave: LeaveRequest) => {
     const style = getLeaveColor(leave.type);
     const user = users.find(u => u.id === leave.userId);
@@ -178,13 +185,14 @@ export const CalendarPage: React.FC = () => {
       .slice(0, 2)
       .toUpperCase();
     const isNote = leave.type === LeaveType.NOTE;
+    const isAdmin = currentUser?.role === 'HR_ADMIN';
 
     return (
       <div
         key={leave.id}
         title={`${leave.userName} (${leave.department}) - ${t('type.' + leave.type)}${isNote ? '\nNote: ' + leave.reason : '\nReason: ' + leave.reason}`}
         className={`
-          text-xs px-2 py-1.5 rounded-md border shadow-sm cursor-pointer flex items-center gap-2
+          text-xs px-2 py-1.5 rounded-md border shadow-sm cursor-pointer flex items-center gap-2 group relative
           ${style.bg} ${style.text} ${style.border}
         `}
       >
@@ -206,7 +214,18 @@ export const CalendarPage: React.FC = () => {
             </div>
           </>
         ) : (
-          <span className="font-semibold truncate">{leave.userName.split(' ')[0]}</span>
+          <span className="font-semibold truncate flex-1">{leave.userName.split(' ')[0]}</span>
+        )}
+
+        {/* ปุ่มลบสำหรับ Admin */}
+        {isAdmin && (
+          <button
+            onClick={(e) => handleDeleteLeave(e, leave.id)}
+            className="opacity-0 group-hover:opacity-100 ml-auto p-1 rounded hover:bg-red-100 text-red-600 transition-all shrink-0"
+            title="ลบรายการ"
+          >
+            <span className="material-symbols-outlined text-[16px]">delete</span>
+          </button>
         )}
       </div>
     );

@@ -601,7 +601,7 @@ export const LeaveProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   };
 
   return (
-    <LeaveContext.Provider value={{ currentUser, users, requests, departments, isAuthenticated, permissions, googleSheetsUrl, annualLeaveLimit, publicHolidayCount, login, logout, addUser, updateUser, deleteUser, addRequest, updateRequestStatus, updatePermission, saveGoogleSheetsUrl, testGoogleSheetsConnection, sendHeadersToSheet, addDepartment, updateDepartment, deleteDepartment, updateLeaveLimits }}>
+    <LeaveContext.Provider value={{ currentUser, users, requests, departments, isAuthenticated, permissions, googleSheetsUrl, annualLeaveLimit, publicHolidayCount, login, logout, addUser, updateUser, deleteUser, addRequest, updateRequestStatus, deleteRequest, updatePermission, saveGoogleSheetsUrl, testGoogleSheetsConnection, sendHeadersToSheet, addDepartment, updateDepartment, deleteDepartment, updateLeaveLimits }}>
       {children}
     </LeaveContext.Provider>
   );
