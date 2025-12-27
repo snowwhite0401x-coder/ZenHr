@@ -236,7 +236,8 @@ export const Approvals: React.FC = () => {
                       </button>
                       <button
                         onClick={() => handleApprove(req.id)}
-                        className="py-2.5 px-4 rounded-xl bg-gradient-to-r from-[#2b8cee] to-blue-400 text-white font-semibold text-sm shadow-md shadow-blue-500/20 hover:shadow-blue-500/40 hover:to-blue-500 transition-all"
+                        style={{ background: 'linear-gradient(to right, #2b8cee, #60a5fa)' }}
+                        className="py-2.5 px-4 rounded-xl text-white font-semibold text-sm shadow-md shadow-blue-500/20 hover:shadow-blue-600 transition-all"
                       >
                         Approve
                       </button>
