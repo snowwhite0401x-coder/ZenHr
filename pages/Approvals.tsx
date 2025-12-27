@@ -121,31 +121,28 @@ export const Approvals: React.FC = () => {
             <div className="flex flex-wrap gap-2">
               <button
                 onClick={() => setFilterType('ALL')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
-                  filterType === 'ALL'
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all ${filterType === 'ALL'
                     ? 'bg-primary text-white shadow-lg shadow-primary/25 hover:bg-blue-600 transform hover:-translate-y-0.5'
                     : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
-                }`}
+                  }`}
               >
                 <span>All Requests</span>
               </button>
               <button
                 onClick={() => setFilterType(LeaveType.ANNUAL)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-colors ${
-                  filterType === LeaveType.ANNUAL
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-colors ${filterType === LeaveType.ANNUAL
                     ? 'bg-primary text-white shadow-lg shadow-primary/25'
                     : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
-                }`}
+                  }`}
               >
                 <span>Annual Leave</span>
               </button>
               <button
                 onClick={() => setFilterType(LeaveType.SICK)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-colors ${
-                  filterType === LeaveType.SICK
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-colors ${filterType === LeaveType.SICK
                     ? 'bg-primary text-white shadow-lg shadow-primary/25'
                     : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
-                }`}
+                  }`}
               >
                 <span>Sick Leave</span>
               </button>
@@ -203,10 +200,10 @@ export const Approvals: React.FC = () => {
                         </div>
                       </div>
                       <span className={`px-3 py-1 rounded-full text-xs font-bold ${getLeaveTypeColor(req.type)}`}>
-                        {req.type === LeaveType.ANNUAL ? 'Annual' : 
-                         req.type === LeaveType.SICK ? 'Sick Leave' :
-                         req.type === LeaveType.PERSONAL ? 'Personal' :
-                         req.type === LeaveType.PUBLIC_HOLIDAY ? 'Public Holiday' : req.type}
+                        {req.type === LeaveType.ANNUAL ? 'Annual' :
+                          req.type === LeaveType.SICK ? 'Sick Leave' :
+                            req.type === LeaveType.PERSONAL ? 'Personal' :
+                              req.type === LeaveType.PUBLIC_HOLIDAY ? 'Public Holiday' : req.type}
                       </span>
                     </div>
 
@@ -239,7 +236,7 @@ export const Approvals: React.FC = () => {
                       </button>
                       <button
                         onClick={() => handleApprove(req.id)}
-                        className="py-2.5 px-4 rounded-xl bg-gradient-to-r from-primary to-blue-400 text-white font-semibold text-sm shadow-md shadow-blue-500/20 hover:shadow-blue-500/40 hover:to-blue-500 transition-all"
+                        className="py-2.5 px-4 rounded-xl bg-gradient-to-r from-[#2b8cee] to-blue-400 text-white font-semibold text-sm shadow-md shadow-blue-500/20 hover:shadow-blue-500/40 hover:to-blue-500 transition-all"
                       >
                         Approve
                       </button>
