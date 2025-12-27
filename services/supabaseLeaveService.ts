@@ -255,6 +255,25 @@ export async function updateLeaveStatus(id: string, status: LeaveStatus): Promis
   }
 }
 
+/**
+ * ลบ leave request จาก Supabase
+ */
+export async function deleteLeaveRequest(id: string): Promise<{ success: boolean; error?: string }> {
+  if (!supabase) return { success: false, error: 'Supabase client not initialized' };
+
+  const { error } = await supabase
+    .from('leave_requests')
+    .delete()
+    .eq('id', id);
+
+  if (error) {
+    console.warn('[Supabase] Failed to delete leave request', error);
+    return { success: false, error: error.message };
+  }
+
+  return { success: true };
+}
+
 // -------- Departments CRUD -----------------------
 
 export async function fetchDepartments(): Promise<string[]> {

@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { LeaveRequest, User, LeaveStatus, LeaveType, RolePermissions, AppFeature, Department } from '../types.ts';
 import { MOCK_REQUESTS, MOCK_USERS, ANNUAL_LEAVE_LIMIT, PUBLIC_HOLIDAY_COUNT } from '../constants.ts';
 import { useLanguage } from './LanguageContext.tsx';
-import { fetchUsersAndRequests, fetchLeaveSettings, updateLeaveSettings as supabaseUpdateLeaveSettings, updateUser as supabaseUpdateUser, insertUser as supabaseInsertUser, deleteUser as supabaseDeleteUser, insertLeaveRequest as supabaseInsertLeaveRequest, updateLeaveStatus as supabaseUpdateLeaveStatus, fetchDepartments as supabaseFetchDepartments, insertDepartment as supabaseInsertDepartment, updateDepartmentName as supabaseUpdateDepartmentName, deleteDepartmentByName as supabaseDeleteDepartmentByName, fetchPermissions as supabaseFetchPermissions, updatePermission as supabaseUpdatePermission } from '../services/supabaseLeaveService';
+import { fetchUsersAndRequests, fetchLeaveSettings, updateLeaveSettings as supabaseUpdateLeaveSettings, updateUser as supabaseUpdateUser, insertUser as supabaseInsertUser, deleteUser as supabaseDeleteUser, insertLeaveRequest as supabaseInsertLeaveRequest, updateLeaveStatus as supabaseUpdateLeaveStatus, deleteLeaveRequest as supabaseDeleteLeaveRequest, fetchDepartments as supabaseFetchDepartments, insertDepartment as supabaseInsertDepartment, updateDepartmentName as supabaseUpdateDepartmentName, deleteDepartmentByName as supabaseDeleteDepartmentByName, fetchPermissions as supabaseFetchPermissions, updatePermission as supabaseUpdatePermission } from '../services/supabaseLeaveService';
 
 interface LeaveContextType {
   currentUser: User | null;
@@ -21,6 +21,7 @@ interface LeaveContextType {
   deleteUser: (id: string) => Promise<void>;
   addRequest: (req: Omit<LeaveRequest, 'id' | 'createdAt' | 'userName' | 'status' | 'userId' | 'department'>) => Promise<{ success: boolean; message: string }>;
   updateRequestStatus: (id: string, status: LeaveStatus) => Promise<void>;
+  deleteRequest: (id: string) => Promise<void>;
   updatePermission: (role: 'EMPLOYEE' | 'HR_ADMIN', feature: AppFeature, value: boolean) => Promise<void>;
   saveGoogleSheetsUrl: (url: string) => void;
   testGoogleSheetsConnection: () => Promise<boolean>;
@@ -471,6 +472,53 @@ export const LeaveProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     }
 
     return { success: true, message: t('msg.reqSuccess') };
+  };
+
+  const deleteRequest = async (id: string) => {
+    const targetRequest = requests.find(r => r.id === id);
+    if (!targetRequest) return;
+
+    // ถ้า request นี้ได้รับการอนุมัติแล้ว ต้องคืนวันลา
+    if (targetRequest.status === LeaveStatus.APPROVED) {
+      const user = users.find(u => u.id === targetRequest.userId);
+      if (user) {
+        const reqYear = new Date(targetRequest.startDate).getFullYear();
+        const currentYear = new Date().getFullYear();
+        
+        // คืนวันลาเฉพาะปีปัจจุบัน
+        if (reqYear === currentYear) {
+          if (targetRequest.type === LeaveType.ANNUAL) {
+            const newAnnualUsed = Math.max(0, user.annualLeaveUsed - targetRequest.daysCount);
+            await supabaseUpdateUser(targetRequest.userId, { annualLeaveUsed: newAnnualUsed }).catch((err) => {
+              console.warn('[Supabase] Failed to update annual_leave_used when deleting request', err);
+            });
+            setUsers(prev => prev.map(u => 
+              u.id === targetRequest.userId 
+              ? { ...u, annualLeaveUsed: newAnnualUsed }
+              : u
+            ));
+          } else if (targetRequest.type === LeaveType.PUBLIC_HOLIDAY) {
+            const newPublicUsed = Math.max(0, (user.publicHolidayUsed || 0) - targetRequest.daysCount);
+            await supabaseUpdateUser(targetRequest.userId, { publicHolidayUsed: newPublicUsed }).catch((err) => {
+              console.warn('[Supabase] Failed to update public_holiday_used when deleting request', err);
+            });
+            setUsers(prev => prev.map(u => 
+              u.id === targetRequest.userId 
+              ? { ...u, publicHolidayUsed: newPublicUsed }
+              : u
+            ));
+          }
+        }
+      }
+    }
+
+    // ลบจาก Supabase ก่อน
+    await supabaseDeleteLeaveRequest(id).catch((err) => {
+      console.warn('[Supabase] Failed to delete leave request', err);
+    });
+
+    // ลบจาก state
+    setRequests(prev => prev.filter(req => req.id !== id));
   };
 
   const updateRequestStatus = async (id: string, status: LeaveStatus) => {

@@ -5,7 +5,7 @@ import { LeaveStatus, LeaveType, LeaveRequest } from '../types.ts';
 import { NewLeaveModal } from '../components/NewLeaveModal.tsx';
 
 export const CalendarPage: React.FC = () => {
-  const { requests, departments, users } = useLeaveContext();
+  const { requests, departments, users, currentUser, deleteRequest } = useLeaveContext();
   const { t, language } = useLanguage();
   const [filterDept, setFilterDept] = useState<string>('ALL');
   const [filterType, setFilterType] = useState<string>('ALL');
@@ -274,8 +274,8 @@ export const CalendarPage: React.FC = () => {
                   type="button"
                   onClick={() => setShowFilters(!showFilters)}
                   className={`hidden sm:inline-flex items-center gap-1 px-3 py-2 rounded-xl border text-xs font-medium transition-colors ${showFilters || filterType !== 'ALL'
-                      ? 'bg-indigo-50 border-indigo-200 text-indigo-600'
-                      : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+                    ? 'bg-indigo-50 border-indigo-200 text-indigo-600'
+                    : 'border-gray-200 text-gray-600 hover:bg-gray-50'
                     }`}
                 >
                   <span className={`w-1.5 h-1.5 rounded-full ${filterType !== 'ALL' ? 'bg-indigo-500' : 'bg-green-500'}`} />
@@ -335,8 +335,8 @@ export const CalendarPage: React.FC = () => {
                   type="button"
                   onClick={() => setViewMode(mode as any)}
                   className={`px-3 py-1 rounded-full transition-colors ${viewMode === mode
-                      ? 'bg-white text-indigo-600 shadow-sm'
-                      : 'text-gray-500 hover:text-gray-700'
+                    ? 'bg-white text-indigo-600 shadow-sm'
+                    : 'text-gray-500 hover:text-gray-700'
                     }`}
                 >
                   {mode === 'MONTH' ? 'Month' : mode === 'WEEK' ? 'Week' : 'List'}
@@ -379,7 +379,7 @@ export const CalendarPage: React.FC = () => {
                       <div className="flex items-center gap-1">
                         {leaves.length > 0 && (
                           <span className="text-[10px] font-semibold text-gray-500 bg-gray-100 px-1.5 rounded-full">
-                          {leaves.length} {t('cal.away')}
+                            {leaves.length} {t('cal.away')}
                           </span>
                         )}
                         <button
@@ -393,7 +393,7 @@ export const CalendarPage: React.FC = () => {
                         </button>
                       </div>
                     </div>
-                    
+
                     <div className="flex flex-col gap-1.5 mt-1 overflow-y-auto custom-scrollbar">
                       {/* แสดงการลาก่อน */}
                       {leaves.map(leave => renderLeaveItem(leave))}
@@ -453,7 +453,7 @@ export const CalendarPage: React.FC = () => {
                         </svg>
                       </button>
                     </div>
-                    
+
                     <div className="flex flex-col gap-2 flex-1 overflow-y-auto custom-scrollbar">
                       {/* แสดงการลาก่อน */}
                       {leaves.map(leave => renderLeaveItem(leave))}
