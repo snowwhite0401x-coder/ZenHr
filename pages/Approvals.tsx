@@ -31,7 +31,7 @@ export const Approvals: React.FC = () => {
     // Search filter
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(r => 
+      filtered = filtered.filter(r =>
         r.userName.toLowerCase().includes(query) ||
         r.department.toLowerCase().includes(query)
       );
@@ -50,15 +50,15 @@ export const Approvals: React.FC = () => {
   const getLeaveTypeColor = (type: LeaveType) => {
     switch (type) {
       case LeaveType.ANNUAL:
-        return 'bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400';
+        return 'bg-orange-100 text-orange-600';
       case LeaveType.SICK:
-        return 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400';
+        return 'bg-purple-100 text-purple-600';
       case LeaveType.PERSONAL:
-        return 'bg-teal-100 dark:bg-teal-900/30 text-teal-600 dark:text-teal-400';
+        return 'bg-teal-100 text-teal-600';
       case LeaveType.PUBLIC_HOLIDAY:
-        return 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400';
+        return 'bg-green-100 text-green-600';
       default:
-        return 'bg-gray-100 dark:bg-gray-900/30 text-gray-600 dark:text-gray-400';
+        return 'bg-gray-100 text-gray-600';
     }
   };
 
@@ -67,7 +67,7 @@ export const Approvals: React.FC = () => {
     const end = new Date(endDate);
     const startMonth = start.toLocaleDateString('en-US', { month: 'short' });
     const endMonth = end.toLocaleDateString('en-US', { month: 'short' });
-    
+
     if (startDate === endDate) {
       return `${startMonth} ${start.getDate()}`;
     }
@@ -83,11 +83,11 @@ export const Approvals: React.FC = () => {
   };
 
   return (
-    <div className="flex-1 flex flex-col h-full relative min-w-0 overflow-hidden bg-background-light dark:bg-background-dark">
+    <div className="flex-1 flex flex-col h-full relative min-w-0 overflow-hidden bg-background-light">
       {/* Header */}
-      <header className="h-16 flex items-center justify-between px-4 md:px-6 lg:px-10 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-[#1a2632] shrink-0 z-10">
+      <header className="h-16 flex items-center justify-between px-4 md:px-6 lg:px-10 border-b border-slate-200 bg-white shrink-0 z-10">
         <div className="flex items-center gap-4 lg:hidden">
-          <h2 className="text-lg font-bold text-slate-900 dark:text-white">Approvals</h2>
+          <h2 className="text-lg font-bold text-slate-900">Approvals</h2>
         </div>
         <div className="hidden lg:flex items-center flex-1 max-w-xl">
           <div className="relative w-full">
@@ -95,7 +95,7 @@ export const Approvals: React.FC = () => {
               <span className="material-symbols-outlined text-[20px]">search</span>
             </span>
             <input
-              className="w-full pl-11 pr-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 border-none text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:ring-2 focus:ring-primary/20 transition-shadow"
+              className="w-full pl-11 pr-4 py-2.5 rounded-xl bg-slate-100 border-none text-sm text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-primary/20 transition-shadow"
               placeholder="Search for employee, department..."
               type="text"
               value={searchQuery}
@@ -111,41 +111,38 @@ export const Approvals: React.FC = () => {
           {/* Title and Filters */}
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
             <div className="space-y-2">
-              <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+              <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight">
                 Pending Approvals
               </h1>
-              <p className="text-slate-500 dark:text-slate-400 text-base md:text-lg">
+              <p className="text-slate-500 text-base md:text-lg">
                 Review and manage {pendingRequests.length} new leave request{pendingRequests.length !== 1 ? 's' : ''}.
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
               <button
                 onClick={() => setFilterType('ALL')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
-                  filterType === 'ALL'
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all ${filterType === 'ALL'
                     ? 'bg-primary text-white shadow-lg shadow-primary/25 hover:bg-blue-600 transform hover:-translate-y-0.5'
                     : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'
-                }`}
+                  }`}
               >
                 <span>All Requests</span>
               </button>
               <button
                 onClick={() => setFilterType(LeaveType.ANNUAL)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-colors ${
-                  filterType === LeaveType.ANNUAL
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-colors ${filterType === LeaveType.ANNUAL
                     ? 'bg-primary text-white shadow-lg shadow-primary/25'
                     : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'
-                }`}
+                  }`}
               >
                 <span>Annual Leave</span>
               </button>
               <button
                 onClick={() => setFilterType(LeaveType.SICK)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-colors ${
-                  filterType === LeaveType.SICK
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-colors ${filterType === LeaveType.SICK
                     ? 'bg-primary text-white shadow-lg shadow-primary/25'
                     : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'
-                }`}
+                  }`}
               >
                 <span>Sick Leave</span>
               </button>
@@ -161,10 +158,10 @@ export const Approvals: React.FC = () => {
 
           {/* Request Cards */}
           {pendingRequests.length === 0 ? (
-            <div className="bg-white dark:bg-[#1a2632] rounded-[2rem] p-16 text-center shadow-sm border border-slate-100 dark:border-slate-800">
+            <div className="bg-white rounded-[2rem] p-16 text-center shadow-sm border border-slate-100">
               <div className="text-6xl mb-4">🎉</div>
-              <h3 className="text-lg font-medium text-slate-900 dark:text-white mb-2">All caught up!</h3>
-              <p className="text-slate-500 dark:text-slate-400">No pending leave requests at the moment.</p>
+              <h3 className="text-lg font-medium text-slate-900 mb-2">All caught up!</h3>
+              <p className="text-slate-500">No pending leave requests at the moment.</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -181,7 +178,7 @@ export const Approvals: React.FC = () => {
                 return (
                   <article
                     key={req.id}
-                    className="bg-white dark:bg-[#1a2632] rounded-[2rem] p-6 shadow-sm border border-slate-100 dark:border-slate-800 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-1 transition-all duration-300 flex flex-col gap-5"
+                    className="bg-white rounded-[2rem] p-6 shadow-sm border border-slate-100 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-1 transition-all duration-300 flex flex-col gap-5"
                   >
                     {/* Header with Avatar and Type */}
                     <div className="flex items-start justify-between gap-4">
@@ -194,7 +191,7 @@ export const Approvals: React.FC = () => {
                           )}
                         </div>
                         <div>
-                          <h3 className="text-base font-bold text-slate-900 dark:text-white leading-tight">
+                          <h3 className="text-base font-bold text-slate-900 leading-tight">
                             {req.userName}
                           </h3>
                           <p className="text-xs font-semibold text-primary uppercase tracking-wide mt-0.5">
@@ -211,7 +208,7 @@ export const Approvals: React.FC = () => {
                     </div>
 
                     {/* Date Range */}
-                    <div className="flex items-center gap-2 text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl">
+                    <div className="flex items-center gap-2 text-slate-600 bg-slate-50 p-3 rounded-xl">
                       <span className="material-symbols-outlined text-primary text-[20px]">calendar_today</span>
                       <span className="text-sm font-medium">{formatDateRange(req.startDate, req.endDate)}</span>
                       <span className="w-1 h-1 rounded-full bg-slate-300 mx-1"></span>
@@ -222,8 +219,8 @@ export const Approvals: React.FC = () => {
 
                     {/* Reason */}
                     {req.reason && (
-                      <div className="bg-primary/5 dark:bg-slate-800/50 p-4 rounded-[1.25rem_1.25rem_1.25rem_0.25rem]">
-                        <p className="text-sm text-slate-700 dark:text-slate-300 italic">
+                      <div className="bg-primary/5 p-4 rounded-[1.25rem_1.25rem_1.25rem_0.25rem]">
+                        <p className="text-sm text-slate-700 italic">
                           "{req.reason}"
                         </p>
                       </div>
@@ -233,7 +230,7 @@ export const Approvals: React.FC = () => {
                     <div className="grid grid-cols-2 gap-3 mt-auto pt-2">
                       <button
                         onClick={() => handleReject(req.id)}
-                        className="py-2.5 px-4 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 font-semibold text-sm hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                        className="py-2.5 px-4 rounded-xl border border-slate-200 text-slate-600 font-semibold text-sm hover:bg-slate-50 transition-colors"
                       >
                         Reject
                       </button>
