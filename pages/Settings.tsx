@@ -327,26 +327,36 @@ export const Settings: React.FC = () => {
                   <label
                     key={day.key}
                     className={`
-                      relative flex items-center justify-center p-4 rounded-lg border-2 cursor-pointer transition-all
+                      relative flex items-center justify-center p-4 rounded-lg border-2 cursor-pointer transition-all select-none
                       ${day.value
                         ? 'bg-blue-50 border-blue-500 shadow-sm'
                         : 'bg-white border-gray-200 hover:border-gray-300'
                       }
                     `}
+                    style={{ userSelect: 'none', outline: 'none' }}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setOfficeHolidaysInput(prev => ({
+                        ...prev,
+                        [day.key]: !prev[day.key as keyof typeof prev]
+                      }));
+                    }}
+                    onMouseDown={(e) => e.preventDefault()}
                   >
                     <input
-                      type="radio"
-                      name="officeHoliday"
+                      type="checkbox"
                       checked={day.value}
-                      onChange={() => {
-                        setOfficeHolidaysInput(prev => ({
-                          ...prev,
-                          [day.key]: !prev[day.key as keyof typeof prev]
-                        }));
+                      onChange={() => {}}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
                       }}
                       className="sr-only"
+                      tabIndex={-1}
+                      readOnly
                     />
-                    <div className="flex flex-col items-center gap-2">
+                    <div className="flex flex-col items-center gap-2 pointer-events-none">
                       <div className={`
                         w-5 h-5 rounded-full border-2 flex items-center justify-center
                         ${day.value
