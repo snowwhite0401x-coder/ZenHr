@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { LeaveRequest, User, LeaveStatus, LeaveType, RolePermissions, AppFeature, Department } from '../types.ts';
 import { MOCK_REQUESTS, MOCK_USERS, ANNUAL_LEAVE_LIMIT, PUBLIC_HOLIDAY_COUNT } from '../constants.ts';
 import { useLanguage } from './LanguageContext.tsx';
-import { fetchUsersAndRequests, fetchLeaveSettings, updateLeaveSettings as supabaseUpdateLeaveSettings, updateUser as supabaseUpdateUser, insertUser as supabaseInsertUser, deleteUser as supabaseDeleteUser, insertLeaveRequest as supabaseInsertLeaveRequest, updateLeaveStatus as supabaseUpdateLeaveStatus, deleteLeaveRequest as supabaseDeleteLeaveRequest, fetchDepartments as supabaseFetchDepartments, insertDepartment as supabaseInsertDepartment, updateDepartmentName as supabaseUpdateDepartmentName, deleteDepartmentByName as supabaseDeleteDepartmentByName, fetchPermissions as supabaseFetchPermissions, updatePermission as supabaseUpdatePermission } from '../services/supabaseLeaveService';
+import { fetchUsersAndRequests, fetchLeaveSettings, updateLeaveSettings as supabaseUpdateLeaveSettings, updateUser as supabaseUpdateUser, insertUser as supabaseInsertUser, deleteUser as supabaseDeleteUser, insertLeaveRequest as supabaseInsertLeaveRequest, updateLeaveStatus as supabaseUpdateLeaveStatus, deleteLeaveRequest as supabaseDeleteLeaveRequest, fetchDepartments as supabaseFetchDepartments, insertDepartment as supabaseInsertDepartment, updateDepartmentName as supabaseUpdateDepartmentName, deleteDepartmentByName as supabaseDeleteDepartmentByName, fetchPermissions as supabaseFetchPermissions, updatePermission as supabaseUpdatePermission, fetchOfficeHolidays as supabaseFetchOfficeHolidays, updateOfficeHolidays as supabaseUpdateOfficeHolidays, OfficeHolidays } from '../services/supabaseLeaveService';
 
 interface LeaveContextType {
   currentUser: User | null;
@@ -14,6 +14,8 @@ interface LeaveContextType {
   googleSheetsUrl: string;
   annualLeaveLimit: number;
   publicHolidayCount: number;
+  officeHolidays: OfficeHolidays;
+  updateOfficeHolidays: (holidays: OfficeHolidays) => Promise<void>;
   login: (username: string, pass: string) => boolean;
   logout: () => void;
   addUser: (user: User) => Promise<void>;
@@ -98,6 +100,27 @@ export const LeaveProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     return Number.isFinite(n) && n > 0 ? n : PUBLIC_HOLIDAY_COUNT;
   });
 
+  const [officeHolidays, setOfficeHolidays] = useState<OfficeHolidays>(() => {
+    const saved = localStorage.getItem('zenhr_office_holidays');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch {
+        // Return default if parse fails
+      }
+    }
+    // Default: Sunday is holiday
+    return {
+      sunday: true,
+      monday: false,
+      tuesday: false,
+      wednesday: false,
+      thursday: false,
+      friday: false,
+      saturday: false,
+    };
+  });
+
   const [currentUserId, setCurrentUserId] = useState<string | null>(() => {
     return localStorage.getItem('zenhr_current_user_id');
   });
@@ -153,6 +176,12 @@ export const LeaveProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         setAnnualLeaveLimit(settings.annualLeaveLimit);
         setPublicHolidayCount(settings.publicHolidayCount);
       }
+
+      // fetch office holidays from Supabase if available
+      const holidays = await supabaseFetchOfficeHolidays();
+      if (holidays) {
+        setOfficeHolidays(holidays);
+      }
     })();
   }, []);
 
@@ -191,6 +220,10 @@ export const LeaveProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   useEffect(() => {
     localStorage.setItem('zenhr_public_holiday_count', String(publicHolidayCount));
   }, [publicHolidayCount]);
+
+  useEffect(() => {
+    localStorage.setItem('zenhr_office_holidays', JSON.stringify(officeHolidays));
+  }, [officeHolidays]);
 
   const login = (username: string, pass: string): boolean => {
     const user = users.find(u => u.username === username && u.password === pass);
@@ -329,6 +362,17 @@ export const LeaveProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     // อัปเดต state หลังจาก Supabase
     setAnnualLeaveLimit(annual);
     setPublicHolidayCount(publicCount);
+  };
+
+  const updateOfficeHolidays = async (holidays: OfficeHolidays) => {
+    // บันทึกลง Supabase ก่อน
+    const result = await supabaseUpdateOfficeHolidays(holidays);
+    if (!result.success) {
+      console.warn('[Supabase] Failed to update office_holidays', result.error);
+      // ยังอัปเดต state ต่อ (fallback)
+    }
+    // อัปเดต state หลังจาก Supabase
+    setOfficeHolidays(holidays);
   };
 
   const saveGoogleSheetsUrl = (url: string) => {
@@ -601,7 +645,7 @@ export const LeaveProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   };
 
   return (
-    <LeaveContext.Provider value={{ currentUser, users, requests, departments, isAuthenticated, permissions, googleSheetsUrl, annualLeaveLimit, publicHolidayCount, login, logout, addUser, updateUser, deleteUser, addRequest, updateRequestStatus, deleteRequest, updatePermission, saveGoogleSheetsUrl, testGoogleSheetsConnection, sendHeadersToSheet, addDepartment, updateDepartment, deleteDepartment, updateLeaveLimits }}>
+    <LeaveContext.Provider value={{ currentUser, users, requests, departments, isAuthenticated, permissions, googleSheetsUrl, annualLeaveLimit, publicHolidayCount, officeHolidays, updateOfficeHolidays, login, logout, addUser, updateUser, deleteUser, addRequest, updateRequestStatus, deleteRequest, updatePermission, saveGoogleSheetsUrl, testGoogleSheetsConnection, sendHeadersToSheet, addDepartment, updateDepartment, deleteDepartment, updateLeaveLimits }}>
       {children}
     </LeaveContext.Provider>
   );

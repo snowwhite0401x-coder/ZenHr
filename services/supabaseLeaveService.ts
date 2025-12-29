@@ -398,3 +398,108 @@ export async function updatePermission(role: 'EMPLOYEE' | 'HR_ADMIN', feature: s
 
   return { success: true };
 }
+
+// -------- Office Holidays CRUD -----------------------
+
+export type OfficeHolidays = {
+  sunday: boolean;
+  monday: boolean;
+  tuesday: boolean;
+  wednesday: boolean;
+  thursday: boolean;
+  friday: boolean;
+  saturday: boolean;
+};
+
+type DbOfficeHolidays = {
+  id: string;
+  sunday: boolean;
+  monday: boolean;
+  tuesday: boolean;
+  wednesday: boolean;
+  thursday: boolean;
+  friday: boolean;
+  saturday: boolean;
+};
+
+export async function fetchOfficeHolidays(): Promise<OfficeHolidays | null> {
+  if (!supabase) return null;
+
+  const { data, error } = await supabase
+    .from('office_holidays')
+    .select('*')
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    console.warn('[Supabase] Failed to fetch office_holidays', error);
+    return null;
+  }
+
+  if (!data) {
+    // Return default (Sunday is holiday)
+    return {
+      sunday: true,
+      monday: false,
+      tuesday: false,
+      wednesday: false,
+      thursday: false,
+      friday: false,
+      saturday: false,
+    };
+  }
+
+  const row = data as DbOfficeHolidays;
+  return {
+    sunday: row.sunday,
+    monday: row.monday,
+    tuesday: row.tuesday,
+    wednesday: row.wednesday,
+    thursday: row.thursday,
+    friday: row.friday,
+    saturday: row.saturday,
+  };
+}
+
+export async function updateOfficeHolidays(holidays: OfficeHolidays): Promise<{ success: boolean; error?: string }> {
+  if (!supabase) return { success: false, error: 'Supabase client not initialized' };
+
+  // Check if a row exists
+  const { data: existing, error: fetchError } = await supabase
+    .from('office_holidays')
+    .select('id')
+    .limit(1)
+    .maybeSingle();
+
+  if (fetchError && fetchError.code !== 'PGRST116') {
+    console.warn('[Supabase] Failed to read office_holidays for update', fetchError);
+    return { success: false, error: fetchError.message };
+  }
+
+  const payload = {
+    ...holidays,
+    updated_at: new Date().toISOString(),
+  };
+
+  if (existing && (existing as { id: string }).id) {
+    // Update existing row
+    const { error: upError } = await supabase
+      .from('office_holidays')
+      .update(payload)
+      .eq('id', (existing as { id: string }).id);
+
+    if (upError) {
+      console.warn('[Supabase] Failed to update office_holidays', upError);
+      return { success: false, error: upError.message };
+    }
+  } else {
+    // Insert new row
+    const { error: insError } = await supabase.from('office_holidays').insert(payload);
+    if (insError) {
+      console.warn('[Supabase] Failed to insert office_holidays', insError);
+      return { success: false, error: insError.message };
+    }
+  }
+
+  return { success: true };
+}

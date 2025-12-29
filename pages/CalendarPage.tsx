@@ -5,7 +5,7 @@ import { LeaveStatus, LeaveType, LeaveRequest } from '../types.ts';
 import { NewLeaveModal } from '../components/NewLeaveModal.tsx';
 
 export const CalendarPage: React.FC = () => {
-  const { requests, departments, users, currentUser, deleteRequest } = useLeaveContext();
+  const { requests, departments, users, currentUser, deleteRequest, officeHolidays } = useLeaveContext();
   const { t, language } = useLanguage();
   const [filterDept, setFilterDept] = useState<string>('ALL');
   const [filterType, setFilterType] = useState<string>('ALL');
@@ -118,6 +118,21 @@ export const CalendarPage: React.FC = () => {
   const getLeavesForDay = (day: number): { leaves: LeaveRequest[]; notes: LeaveRequest[] } => {
     const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
     return getLeavesForDate(dateStr);
+  };
+
+  // Check if a date is a holiday (office holiday)
+  const isOfficeHoliday = (date: Date): boolean => {
+    const dayOfWeek = date.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+    switch (dayOfWeek) {
+      case 0: return officeHolidays.sunday;
+      case 1: return officeHolidays.monday;
+      case 2: return officeHolidays.tuesday;
+      case 3: return officeHolidays.wednesday;
+      case 4: return officeHolidays.thursday;
+      case 5: return officeHolidays.friday;
+      case 6: return officeHolidays.saturday;
+      default: return false;
+    }
   };
 
   // Filtered requests for List view
@@ -371,11 +386,20 @@ export const CalendarPage: React.FC = () => {
           <>
             {/* Days Header */}
             <div className="grid grid-cols-7 border-b border-gray-200 bg-gray-50/80">
-              {dayNames.map(d => (
-                <div key={d} className="py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                  {d}
-                </div>
-              ))}
+              {dayNames.map((d, idx) => {
+                const isHolidayDay = idx === 0 ? officeHolidays.sunday :
+                                    idx === 1 ? officeHolidays.monday :
+                                    idx === 2 ? officeHolidays.tuesday :
+                                    idx === 3 ? officeHolidays.wednesday :
+                                    idx === 4 ? officeHolidays.thursday :
+                                    idx === 5 ? officeHolidays.friday :
+                                    officeHolidays.saturday;
+                return (
+                  <div key={d} className={`py-3 text-center text-xs font-semibold uppercase tracking-wider ${isHolidayDay ? 'text-red-600' : 'text-gray-500'}`}>
+                    {d}
+                  </div>
+                );
+              })}
             </div>
 
             {/* Calendar Grid */}
@@ -386,13 +410,21 @@ export const CalendarPage: React.FC = () => {
                 }
 
                 const currentDayStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const currentDate = new Date(year, month, day);
                 const isToday = currentDayStr === todayStr;
+                const isHoliday = isOfficeHoliday(currentDate);
                 const { leaves, notes } = getLeavesForDay(day);
 
                 return (
-                  <div key={day} className={`bg-white min-h-[110px] p-2 transition-colors hover:bg-gray-50 flex flex-col gap-1 group`}>
+                  <div key={day} className={`min-h-[110px] p-2 transition-colors hover:bg-gray-50 flex flex-col gap-1 group ${isHoliday ? 'bg-red-50' : 'bg-white'}`}>
                     <div className={`flex justify-between items-start ${isToday ? 'bg-indigo-50/60 rounded-xl -m-2 mb-1 p-2 pb-1' : ''}`}>
-                      <span className={`text-sm font-semibold h-8 w-8 flex items-center justify-center rounded-full ${isToday ? 'bg-indigo-600 text-white shadow-md' : 'text-gray-700 hover:bg-gray-100'}`}>
+                      <span className={`text-sm font-semibold h-8 w-8 flex items-center justify-center rounded-full ${
+                        isToday 
+                          ? 'bg-indigo-600 text-white shadow-md' 
+                          : isHoliday 
+                            ? 'bg-red-500 text-white' 
+                            : 'text-gray-700 hover:bg-gray-100'
+                      }`}>
                         {day}
                       </span>
                       <div className="flex items-center gap-1">
@@ -435,10 +467,11 @@ export const CalendarPage: React.FC = () => {
                 const dayNum = date.getDate();
                 const dateStr = formatDateStr(date);
                 const isToday = dateStr === todayStr;
+                const isHoliday = isOfficeHoliday(date);
                 return (
                   <div key={idx} className="py-3 text-center border-r border-gray-200 last:border-r-0">
-                    <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">{dayName}</div>
-                    <div className={`text-sm font-bold ${isToday ? 'bg-indigo-600 text-white rounded-full w-7 h-7 flex items-center justify-center mx-auto' : 'text-gray-700'}`}>
+                    <div className={`text-xs font-semibold uppercase tracking-wider mb-1 ${isHoliday ? 'text-red-600' : 'text-gray-500'}`}>{dayName}</div>
+                    <div className={`text-sm font-bold ${isToday ? 'bg-indigo-600 text-white rounded-full w-7 h-7 flex items-center justify-center mx-auto' : isHoliday ? 'bg-red-500 text-white rounded-full w-7 h-7 flex items-center justify-center mx-auto' : 'text-gray-700'}`}>
                       {dayNum}
                     </div>
                   </div>
@@ -451,10 +484,11 @@ export const CalendarPage: React.FC = () => {
               {weekDays.map((date, idx) => {
                 const dateStr = formatDateStr(date);
                 const isToday = dateStr === todayStr;
+                const isHoliday = isOfficeHoliday(date);
                 const { leaves, notes } = getLeavesForDate(dateStr);
 
                 return (
-                  <div key={idx} className={`bg-white min-h-[200px] p-3 transition-colors hover:bg-gray-50 flex flex-col gap-2 group ${isToday ? 'ring-2 ring-indigo-500' : ''}`}>
+                  <div key={idx} className={`min-h-[200px] p-3 transition-colors hover:bg-gray-50 flex flex-col gap-2 group ${isHoliday ? 'bg-red-50' : 'bg-white'} ${isToday ? 'ring-2 ring-indigo-500' : ''}`}>
                     <div className="flex justify-between items-center">
                       <span className="text-xs font-medium text-gray-500">
                         {leaves.length > 0 && `${leaves.length} ${t('cal.away')}`}

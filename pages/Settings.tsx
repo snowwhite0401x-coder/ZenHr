@@ -5,9 +5,9 @@ import { useLanguage } from '../context/LanguageContext';
 import { User, AppFeature } from '../types';
 
 export const Settings: React.FC = () => {
-  const { users, departments, addUser, updateUser, deleteUser, currentUser, permissions, updatePermission, googleSheetsUrl, saveGoogleSheetsUrl, testGoogleSheetsConnection, sendHeadersToSheet, addDepartment, updateDepartment, deleteDepartment, annualLeaveLimit, publicHolidayCount, updateLeaveLimits } = useLeaveContext();
+  const { users, departments, addUser, updateUser, deleteUser, currentUser, permissions, updatePermission, googleSheetsUrl, saveGoogleSheetsUrl, testGoogleSheetsConnection, sendHeadersToSheet, addDepartment, updateDepartment, deleteDepartment, annualLeaveLimit, publicHolidayCount, updateLeaveLimits, officeHolidays, updateOfficeHolidays } = useLeaveContext();
   const { t } = useLanguage();
-  const [activeTab, setActiveTab] = useState<'USERS' | 'DEPARTMENTS' | 'PERMISSIONS' | 'INTEGRATIONS' | 'POLICY'>('USERS');
+  const [activeTab, setActiveTab] = useState<'USERS' | 'DEPARTMENTS' | 'COMPANY_HOLIDAYS' | 'PERMISSIONS' | 'INTEGRATIONS' | 'POLICY'>('USERS');
   const [showUserModal, setShowUserModal] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -28,6 +28,14 @@ export const Settings: React.FC = () => {
   // Leave policy state
   const [annualLimitInput, setAnnualLimitInput] = useState<number>(annualLeaveLimit);
   const [publicHolidayInput, setPublicHolidayInput] = useState<number>(publicHolidayCount);
+
+  // Office holidays state
+  const [officeHolidaysInput, setOfficeHolidaysInput] = useState(officeHolidays);
+  const [savingHolidays, setSavingHolidays] = useState(false);
+
+  useEffect(() => {
+    setOfficeHolidaysInput(officeHolidays);
+  }, [officeHolidays]);
 
   useEffect(() => {
     setSheetUrl(googleSheetsUrl);
@@ -192,6 +200,12 @@ export const Settings: React.FC = () => {
           {t('set.tab.dept')}
         </button>
         <button
+          onClick={() => setActiveTab('COMPANY_HOLIDAYS')}
+          className={`px-6 py-3 font-medium text-sm transition-colors whitespace-nowrap ${activeTab === 'COMPANY_HOLIDAYS' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
+        >
+          วันหยุดบริษัท
+        </button>
+        <button
           onClick={() => setActiveTab('PERMISSIONS')}
           className={`px-6 py-3 font-medium text-sm transition-colors whitespace-nowrap ${activeTab === 'PERMISSIONS' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
         >
@@ -276,6 +290,96 @@ export const Settings: React.FC = () => {
                   ))}
                 </tbody>
               </table>
+            </div>
+          </div>
+        )}
+
+        {/* COMPANY HOLIDAYS TAB */}
+        {activeTab === 'COMPANY_HOLIDAYS' && (
+          <div>
+            <div className="mb-6">
+              <h2 className="text-lg font-semibold text-gray-800 mb-2">วันหยุดบริษัท</h2>
+              <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
+                <div className="flex">
+                  <div className="flex-shrink-0">
+                    <svg className="h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <div className="ml-3">
+                    <p className="text-sm text-yellow-700">
+                      เลือกวันทำงานที่คุณต้องการให้ระบบ "ไม่นับ" เป็นวันลา เช่น เสาร์-อาทิตย์
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-7 gap-3 mb-6">
+                {[
+                  { key: 'sunday', label: 'อาทิตย์', value: officeHolidaysInput.sunday },
+                  { key: 'monday', label: 'จันทร์', value: officeHolidaysInput.monday },
+                  { key: 'tuesday', label: 'อังคาร', value: officeHolidaysInput.tuesday },
+                  { key: 'wednesday', label: 'พุธ', value: officeHolidaysInput.wednesday },
+                  { key: 'thursday', label: 'พฤหัสบดี', value: officeHolidaysInput.thursday },
+                  { key: 'friday', label: 'ศุกร์', value: officeHolidaysInput.friday },
+                  { key: 'saturday', label: 'เสาร์', value: officeHolidaysInput.saturday },
+                ].map((day) => (
+                  <label
+                    key={day.key}
+                    className={`
+                      relative flex items-center justify-center p-4 rounded-lg border-2 cursor-pointer transition-all
+                      ${day.value
+                        ? 'bg-blue-50 border-blue-500 shadow-sm'
+                        : 'bg-white border-gray-200 hover:border-gray-300'
+                      }
+                    `}
+                  >
+                    <input
+                      type="radio"
+                      name="officeHoliday"
+                      checked={day.value}
+                      onChange={() => {
+                        setOfficeHolidaysInput(prev => ({
+                          ...prev,
+                          [day.key]: !prev[day.key as keyof typeof prev]
+                        }));
+                      }}
+                      className="sr-only"
+                    />
+                    <div className="flex flex-col items-center gap-2">
+                      <div className={`
+                        w-5 h-5 rounded-full border-2 flex items-center justify-center
+                        ${day.value
+                          ? 'bg-blue-600 border-blue-600'
+                          : 'border-gray-300'
+                        }
+                      `}>
+                        {day.value && (
+                          <div className="w-2 h-2 rounded-full bg-white" />
+                        )}
+                      </div>
+                      <span className={`text-sm font-medium ${day.value ? 'text-blue-700' : 'text-gray-700'}`}>
+                        {day.label}
+                      </span>
+                    </div>
+                  </label>
+                ))}
+              </div>
+
+              <div className="flex justify-end">
+                <button
+                  onClick={async () => {
+                    setSavingHolidays(true);
+                    await updateOfficeHolidays(officeHolidaysInput);
+                    setSavingHolidays(false);
+                    alert('บันทึกสำเร็จ');
+                  }}
+                  disabled={savingHolidays}
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {savingHolidays ? 'กำลังบันทึก...' : 'บันทึก'}
+                </button>
+              </div>
             </div>
           </div>
         )}
